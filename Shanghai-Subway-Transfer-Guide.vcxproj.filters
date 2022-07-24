@@ -1,0 +1,115 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="pch">
+      <UniqueIdentifier>{8b33e777-698f-4f12-bb00-c909b44e98e3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="menu">
+      <UniqueIdentifier>{dec5c3bf-6093-48fb-b5f5-bd3b19c873a4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="imgui">
+      <UniqueIdentifier>{c6a9853f-11e4-4cbe-bd6d-8de360143b8c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="imgui\backend">
+      <UniqueIdentifier>{f9e33630-433f-4173-9d66-08b2ea1eb28e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ds">
+      <UniqueIdentifier>{e1b938f4-fbe0-4551-9c61-cdc50fb353ec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="utils">
+      <UniqueIdentifier>{3579a689-c6c4-4015-8351-4e3137dff79a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="font">
+      <UniqueIdentifier>{c0aa1dd0-cdd3-4243-89a3-87d2d568b19e}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\imgui\backend\imgui_impl_glfw.cpp">
+      <Filter>imgui\backend</Filter>
+    </ClCompile>
+    <ClCompile Include="src\imgui\backend\imgui_impl_opengl2.cpp">
+      <Filter>imgui\backend</Filter>
+    </ClCompile>
+    <ClCompile Include="src\imgui\imgui.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\imgui\imgui_draw.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\imgui\imgui_tables.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\imgui\imgui_widgets.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\stdafx.cpp">
+      <Filter>pch</Filter>
+    </ClCompile>
+    <ClCompile Include="src\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\MinHeap.hpp">
+      <Filter>ds</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SubwayGraph.hpp">
+      <Filter>ds</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Vector.hpp">
+      <Filter>ds</Filter>
+    </ClInclude>
+    <ClInclude Include="src\imgui\backend\imgui_impl_glfw.h">
+      <Filter>imgui\backend</Filter>
+    </ClInclude>
+    <ClInclude Include="src\imgui\backend\imgui_impl_opengl2.h">
+      <Filter>imgui\backend</Filter>
+    </ClInclude>
+    <ClInclude Include="src\imgui\imconfig.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\imgui\imgui.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\imgui\imgui_internal.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\imgui\imstb_rectpack.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\imgui\imstb_textedit.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\imgui\imstb_truetype.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Log.hpp">
+      <Filter>menu</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Menu.hpp">
+      <Filter>menu</Filter>
+    </ClInclude>
+    <ClInclude Include="src\font\Cousine-Regular.hpp">
+      <Filter>font</Filter>
+    </ClInclude>
+    <ClInclude Include="src\font\font.hpp">
+      <Filter>font</Filter>
+    </ClInclude>
+    <ClInclude Include="src\font\Karla-Regular.hpp">
+      <Filter>font</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Dijkstra.hpp">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="src\stdafx.h">
+      <Filter>pch</Filter>
+    </ClInclude>
+    <ClInclude Include="src\font\msyh.hpp">
+      <Filter>font</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
