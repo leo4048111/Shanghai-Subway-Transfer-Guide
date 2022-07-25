@@ -106,7 +106,11 @@ namespace ds
 		}
 
 		int getTotalLines() const {
-			return this->numLines;
+			ds::Vector<int> vec;
+			for (int i = 0; i < vertexes.size(); i++) {
+				if (vec.find(vertexes[i].lineNum) == vec.end()) vec.push_back(vertexes[i].lineNum);
+			}
+			return vec.size();
 		}
 
 #ifdef _DEBUG
@@ -144,8 +148,6 @@ namespace ds
 
 	private:
 		Vector<Vertex> vertexes;
-
-		int numLines{ 18 };
 	};
 }
 

@@ -93,7 +93,7 @@ private:
         return r;
     }
 
-    inline void updateTexts(const int startLineNum = -1, const int terminalLineNum = -1);
+    inline void updateTexts();
 
 
 private:
@@ -115,12 +115,9 @@ private:
     //texts
     const char** textLines{ nullptr };
     int textLinesSize{ NULL };
-    const char** textStartStations{ nullptr };
-    int textStartStationsSize{ NULL };
-    int textStartStationsCapacity{ NULL };
-    const char** textTerminalStations{ nullptr };
-    int textTerminalStationsSize{ NULL };
-    int textTerminalStationsCapacity{ NULL };
+    const char*** textStations{ nullptr };
+    int textStationsSize{ NULL };
+    int* textStationsCnts{ nullptr };
 
     //fonts
     ImFont* cousineRegular{ nullptr };
@@ -155,7 +152,7 @@ bool Menu::init(GLFWwindow* window)
 
     //init subwayGraph
     initSubwayGraph();
-    updateTexts(1, 1);
+    updateTexts();
 
 	return true;
 }
@@ -210,22 +207,15 @@ void Menu::destroy()
         free(textLines);
     }
 
-    if (textStartStations != nullptr && textStartStationsCapacity > 0) {
-        for (int i = 0; i < textStartStationsCapacity; i++)
-        {
-            if (textStartStations[i] != nullptr) free((void*)textStartStations[i]);
+    if (textStations != nullptr && textStationsCnts != nullptr && textStationsSize > 0) {
+        for (int i = 0; i < textStationsSize; i++) {
+            for (int j = 0; j < textStationsCnts[i]; j++) free((void*)textStations[i][j]);
+            free((void*)textStations[i]);
         }
-        free(textStartStations);
+        free(textStations);
+        free(textStationsCnts);
     }
 
-
-    if (textTerminalStations != nullptr && textTerminalStationsCapacity > 0) {
-        for (int i = 0; i < textTerminalStationsCapacity; i++)
-        {
-            if (textTerminalStations[i] != nullptr) free((void*)textTerminalStations[i]);
-        }
-        free(textTerminalStations);
-    }
 }
 
 inline void Menu::renderMainMenuBar()
@@ -284,32 +274,32 @@ inline void Menu::renderControls()
     ImGui::BeginTabBar("##TabBar");
     if (ImGui::BeginTabItem("Options"))
     {
-        ImGui::PushFont(msyh);
-        ImGui::PushItemWidth(200.f);
-        ImGui::Text("Start station:");
-        ImGui::SameLine(0.f, 36.f);
         static int startLineIdx = 0;
         static int terminalLineIdx = 0;
         static int tmpStartStationIdx = 0;
         static int tmpTerminalStationIdx = 0;
+        ImGui::PushFont(msyh);
+        ImGui::PushItemWidth(200.f);
+        ImGui::Text("Start station:");
+        ImGui::SameLine(0.f, 36.f);
         if (ImGui::Combo("##StartLines", &startLineIdx, textLines, textLinesSize)) { 
-            updateTexts(startLineIdx + 1, terminalLineIdx + 1); 
             tmpStartStationIdx = 0;
-            startStationIdx = g_graph->indexOf(UTF82string(textStartStations[tmpStartStationIdx]));
+            if (textStations[startLineIdx][tmpStartStationIdx] != nullptr)
+                startStationIdx = g_graph->indexOf(UTF82string(textStations[startLineIdx][tmpStartStationIdx]));
         }
         ImGui::SameLine();
-        if(ImGui::Combo("##StartStations", &tmpStartStationIdx, textStartStations, textStartStationsSize)) 
-            startStationIdx = g_graph->indexOf(UTF82string(textStartStations[tmpStartStationIdx]));
+        if (ImGui::Combo("##StartStations", &tmpStartStationIdx, textStations[startLineIdx], textStationsCnts[startLineIdx]))
+            startStationIdx = g_graph->indexOf(UTF82string(textStations[startLineIdx][tmpStartStationIdx]));
         ImGui::Text("Terminal station:");
         ImGui::SameLine();
         if (ImGui::Combo("##TerminalLines", &terminalLineIdx, textLines, textLinesSize)) { 
-            updateTexts(startLineIdx + 1, terminalLineIdx + 1);
             tmpTerminalStationIdx = 0;
-            terminalStationIdx = g_graph->indexOf(UTF82string(textTerminalStations[tmpTerminalStationIdx]));
+            if (textStations[terminalLineIdx][tmpTerminalStationIdx] != nullptr)
+                terminalStationIdx = g_graph->indexOf(UTF82string(textStations[terminalLineIdx][tmpTerminalStationIdx]));
         }
         ImGui::SameLine();
-        if (ImGui::Combo("##TerminalStations", &tmpTerminalStationIdx, textTerminalStations, textTerminalStationsSize))
-            terminalStationIdx = g_graph->indexOf(UTF82string(textTerminalStations[tmpTerminalStationIdx]));
+        if (ImGui::Combo("##TerminalStations", &tmpTerminalStationIdx, textStations[terminalLineIdx], textStationsCnts[terminalLineIdx]))
+            terminalStationIdx = g_graph->indexOf(UTF82string(textStations[terminalLineIdx][tmpTerminalStationIdx]));
         ImGui::PopFont();
         ImGui::PopItemWidth();
         if (ImGui::Button("Find best route."))
@@ -346,13 +336,34 @@ inline void Menu::renderAddControls()
     ImGui::BeginTabBar("##TabBar");
     if (ImGui::BeginTabItem("Station", nullptr, selectedAddControlsTab[0] ? ImGuiTabItemFlags_SetSelected : 0))
     {
-        selectedAddControlsTab[0] = false;
+        selectedAddControlsTab[0] = false; //reset flag
+        static char buf[256];
+        ImGui::PushFont(msyh);
+        ImGui::PushItemWidth(130.f);
+        ImGui::Text("Station name: ");
+        ImGui::SameLine();
+        ImGui::InputText("##InputStationName", buf, IM_ARRAYSIZE(buf));
+        ImGui::Separator();
+        static int selectedLineIdx = 0;
+        static int selectedStationIdx = 0;
+        ImGui::Text("Adjacent station:");
+        ImGui::SameLine(0.f, 36.f);
+        if (ImGui::Combo("##StartLines", &selectedLineIdx, textLines, textLinesSize)) {
+            selectedStationIdx = 0;
+            if (textStations[selectedLineIdx][selectedStationIdx] != nullptr)
+                g_graph->indexOf(UTF82string(textStations[selectedLineIdx][selectedStationIdx]));
+        }
+        ImGui::SameLine();
+        if (ImGui::Combo("##StartStations", &selectedStationIdx, textStations[selectedLineIdx], textStationsCnts[selectedLineIdx]));
+
+        ImGui::PopItemWidth();
+        ImGui::PopFont();
         ImGui::EndTabItem();
     }
 
     if (ImGui::BeginTabItem("Rail line", nullptr, selectedAddControlsTab[1] ? ImGuiTabItemFlags_SetSelected : 0))
     {
-        selectedAddControlsTab[1] = false;
+        selectedAddControlsTab[1] = false; //reset flag
         ImGui::Text("dfashjkdbaskjdbaskjbdkj");
         ImGui::EndTabItem();
     }
@@ -493,67 +504,53 @@ inline void Menu::setupStyle()
 
 }
 
-inline void Menu::updateTexts(const int startLineNum, const int terminalLineNum)
+inline void Menu::updateTexts()
 {
     //update station texts
     const int bufferSize = g_graph->size();
     if (bufferSize <= 0) return;  //empty check
 
-    //start station texts
-    if (textStartStations == nullptr) {
-        textStartStations = (const char**)malloc(sizeof(const char*) * bufferSize);
-        memset(textStartStations, 0, sizeof(const char*) * bufferSize);
-    }
-    else if (textStartStationsSize < bufferSize) {
-        const char** p = (const char**)realloc(textStartStations, sizeof(const char*) * bufferSize);
-        if (p != nullptr) textStartStations = p;
-    }
-    if (textStartStations == nullptr) return;
+    const int totalLines = g_graph->getTotalLines();
+    if (totalLines <= 0) return;  //empty check
 
-    //terminal station texts
-    if (textTerminalStations == nullptr) {
-        textTerminalStations = (const char**)malloc(sizeof(const char*) * bufferSize);
-        memset(textTerminalStations, 0, sizeof(const char*) * bufferSize);
+    //station texts
+    if (this->textStations == nullptr) {
+        this->textStations = (const char***)malloc(sizeof(const char**) * totalLines);
     }
-    else if (textTerminalStationsSize < bufferSize) {
-        const char** p = (const char**)realloc(textTerminalStations, sizeof(const char*) * bufferSize);
-        if (p != nullptr) textTerminalStations = p;
+    else if (totalLines > textStationsSize) {
+        const char*** p = (const char***)realloc(textStations, sizeof(const char**) * totalLines);
+        if (p != nullptr) textStations = p;
     }
-    if (textTerminalStations == nullptr) return;
 
-    int totalTextStartSize = 0, totalTextTerminalSize = 0;
+    if (this->textStationsCnts == nullptr) {
+        this->textStationsCnts = (int*)malloc(sizeof(int) * totalLines);
+    }
+    else if (totalLines > textStationsSize) {
+        int* p = (int*)realloc(textStationsCnts, sizeof(int) * totalLines);
+        if (p != nullptr) textStationsCnts = p;
+    }
+
+    ZeroMemory(textStations, sizeof(const char**) * totalLines);
+    ZeroMemory(textStationsCnts, sizeof(int) * totalLines);
+
     for (int i = 0; i < bufferSize; i++)
     {
         auto vex = g_graph->vexAt(i);
         auto str = string2UTF8(vex.name);
         auto size = str.size() + 1;
-        if (startLineNum == -1 || startLineNum == vex.lineNum) {
 
-            if (totalTextStartSize >= bufferSize) return;
-            textStartStations[totalTextStartSize] = (const char*)realloc((void*)textStartStations[totalTextStartSize], sizeof(const char) * size);
-            if (textStartStations[totalTextStartSize] == nullptr) return;
-            memset((void*)textStartStations[totalTextStartSize], 0, size);
-            memcpy_s((void*)textStartStations[totalTextStartSize], size, str.c_str(), size);
-            totalTextStartSize++;
-        }
-
-        if (terminalLineNum == -1 || terminalLineNum == vex.lineNum) {
-            if (totalTextTerminalSize >= bufferSize) return;
-            textTerminalStations[totalTextTerminalSize] = (const char*)realloc((void*)textTerminalStations[totalTextTerminalSize], sizeof(const char) * size);
-            if (textTerminalStations[totalTextTerminalSize] == nullptr) return;
-            memset((void*)textTerminalStations[totalTextTerminalSize], 0, size);
-            memcpy_s((void*)textTerminalStations[totalTextTerminalSize], size, str.c_str(), size);
-            totalTextTerminalSize++;
-        }
-
+        textStations[vex.lineNum - 1] = (const char**)realloc(textStations[vex.lineNum - 1], (textStationsCnts[vex.lineNum - 1] + 1) * sizeof(const char*));
+        textStations[vex.lineNum - 1][textStationsCnts[vex.lineNum - 1]] = nullptr;
+        auto ptr = textStations[vex.lineNum - 1][textStationsCnts[vex.lineNum - 1]];
+        ptr = (const char*)realloc((void*)ptr, sizeof(char) * size);
+        if (ptr == nullptr) return;
+        textStations[vex.lineNum - 1][textStationsCnts[vex.lineNum - 1]] = ptr;
+        memset((void*)ptr, 0, size);
+        memcpy_s((void*)ptr, size, str.c_str(), size);
+        textStationsCnts[vex.lineNum - 1]++;
     }
-    textStartStationsSize = totalTextStartSize;
-    textTerminalStationsSize = totalTextTerminalSize;
-    textStartStationsCapacity = bufferSize;
-    textTerminalStationsCapacity = bufferSize;
 
     //update line texts
-    const int totalLines = g_graph->getTotalLines();
     if (totalLines <= 0) return;
     if (textLines == nullptr) {
         textLines = (const char**)malloc(sizeof(const char*) * totalLines);
