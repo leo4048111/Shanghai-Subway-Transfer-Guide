@@ -15,11 +15,22 @@ namespace ds
 
 	struct Vertex
 	{
-		Vertex(std::string name, uint32_t lineNum, double x, double y, Vector<int> adjVexes, Vector<int> costs) : name(name), lineNum(lineNum), coord_x(x), coord_y(y) {
+		Vertex(std::string name, ds::Vector<uint32_t> lineNum, double x, double y, Vector<int> adjVexes, Vector<int> costs) : name(name), coord_x(x), coord_y(y) {
+			this->lineNum = lineNum;
 			Arc* pArc = nullptr;
 			for (uint32_t i = 0; i < adjVexes.size(); i++) pArc = new Arc(adjVexes[i], costs[i], pArc);
 			this->first = pArc;
 		};
+
+		inline Vertex& operator=(const Vertex& src) {
+			this->name.resize(src.name.size());
+			for (int i = 0; i < src.name.size(); i++) this->name[i] = src.name[i];
+			this->lineNum = src.lineNum;
+			this->coord_x = src.coord_x;
+			this->coord_y = src.coord_y;
+			this->first = src.first;
+			return *this;
+		}
 
 		~Vertex() = default; //pls use destroy() instead so that arcs arent automatically deconstructed..
 
@@ -35,7 +46,7 @@ namespace ds
 		}
 
 		std::string name{ "" };
-		uint32_t lineNum{ NULL };
+		ds::Vector<uint32_t> lineNum;
 		double coord_x{ 0.f };
 		double coord_y{ 0.f };
 		Arc* first{ nullptr };
@@ -47,11 +58,12 @@ namespace ds
 		SubwayGraph() = default;
 		~SubwayGraph() = default;
 
-		bool insert(std::string name, uint32_t lineNum, double latitude, double longitude, Vector<int> adjVexes, Vector<int> costs) {
+		bool insert(const char* name, ds::Vector<uint32_t> lineNum, double latitude, double longitude, Vector<int> adjVexes, Vector<int> costs) {
 			if (indexOf(name) != -1) return false; //duplication check
 			for (auto elem : adjVexes)
 				if (elem >= vertexes.size()) return false;  //invalid idx check
 			vertexes.push_back(Vertex(name, lineNum, longitude, latitude, adjVexes, costs));
+			return true;
 		};
 
 		//this function implementation is wrong, dont use!!!
@@ -108,7 +120,8 @@ namespace ds
 		int getTotalLines() const {
 			ds::Vector<int> vec;
 			for (int i = 0; i < vertexes.size(); i++) {
-				if (vec.find(vertexes[i].lineNum) == vec.end()) vec.push_back(vertexes[i].lineNum);
+				for(int j = 0; j < vertexes[i].lineNum.size(); j++)
+				if (vec.find(vertexes[i].lineNum[j]) == vec.end()) vec.push_back(vertexes[i].lineNum[j]);
 			}
 			return vec.size();
 		}
