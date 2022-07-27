@@ -540,7 +540,6 @@ inline void Menu::renderGraph()
             if (arc->adjVex < 0) continue;
             auto adjVex = g_graph->vexAt(arc->adjVex);
             ImVec2 dst((adjVex.coord_x - SH_LONGITUDE) * ZOOM(graphScale) + canvasOrigin.x, (adjVex.coord_y - SH_LATITUDE) * ZOOM(graphScale) + canvasOrigin.y);
-            double angle = atan((src.y - dst.y) / (src.x - dst.x));
             ImVec4 lineColor(NULL, NULL, NULL, NULL);
             bool isSrcInRoute = false;
             bool isDstInRoute = false;
@@ -565,11 +564,11 @@ inline void Menu::renderGraph()
 
             lineColor = shouldDrawRoute && isSrcInRoute && isDstInRoute ? routeColor : railwayLineColors[lineNum];
             float lineWeight = shouldDrawRoute && isSrcInRoute && isDstInRoute ? 2.f : 1.5f;
+
+            double angle = atan((src.y - dst.y) / (src.x - dst.x));
             drawList->AddLine(
-                //ImVec2(src.x + (src.x > dst.x ? -1 : 1) * ZOOM(stationMarkRadius) * cos(angle), src.y + (src.y > dst.y ? -1 : 1) * ZOOM(stationMarkRadius) * sin(angle)),
-                //ImVec2(dst.x + (src.x < dst.x ? -1 : 1) * ZOOM(stationMarkRadius) * cos(angle), dst.y + (src.y < dst.y ? -1 : 1) * ZOOM(stationMarkRadius) * sin(angle)),
-                src,
-                dst,
+                ImVec2(src.x + (src.x > dst.x ? -1 : 1) * ZOOM(stationMarkRadius) * cos(angle), src.y + (src.x > dst.x ? -1 : 1) * ZOOM(stationMarkRadius) * sin(angle)),
+                ImVec2(dst.x + (src.x < dst.x ? -1 : 1) * ZOOM(stationMarkRadius) * cos(angle), dst.y + (src.x < dst.x ? -1 : 1) * ZOOM(stationMarkRadius) * sin(angle)),
                 ImGui::ColorConvertFloat4ToU32(lineColor),
                 ZOOM(lineWeight));
         }
