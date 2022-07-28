@@ -15,7 +15,7 @@ namespace ds
 
 	struct Vertex
 	{
-		Vertex(std::string name, ds::Vector<uint32_t> lineNum, double x, double y, Vector<int> adjVexes, Vector<int> costs) : name(name), coord_x(x), coord_y(y) {
+		Vertex(std::string name, ds::Vector<int> lineNum, double x, double y, Vector<int> adjVexes, Vector<int> costs) : name(name), coord_x(x), coord_y(y) {
 			this->lineNum = lineNum;
 			Arc* pArc = nullptr;
 			for (uint32_t i = 0; i < adjVexes.size(); i++) pArc = new Arc(adjVexes[i], costs[i], pArc);
@@ -46,7 +46,7 @@ namespace ds
 		}
 
 		std::string name{ "" };
-		ds::Vector<uint32_t> lineNum;
+		ds::Vector<int> lineNum;
 		double coord_x{ 0.f };
 		double coord_y{ 0.f };
 		Arc* first{ nullptr };
@@ -58,7 +58,7 @@ namespace ds
 		SubwayGraph() = default;
 		~SubwayGraph() = default;
 
-		bool insert(const char* name, ds::Vector<uint32_t> lineNum, double latitude, double longitude, Vector<int> adjVexes, Vector<int> costs) {
+		bool insert(const char* name, ds::Vector<int> lineNum, double latitude, double longitude, Vector<int> adjVexes, Vector<int> costs) {
 			if (indexOf(name) != -1) return false; //duplication check
 			for (auto elem : adjVexes)
 				if (elem >= vertexes.size()) return false;  //invalid idx check

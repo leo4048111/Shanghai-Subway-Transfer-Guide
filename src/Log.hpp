@@ -36,7 +36,7 @@ public:
                 LineOffsets.push_back(old_size + 1);
     }
 
-    void draw(const char* title, bool* p_open = NULL)
+    void draw(ImFont* font, const char* title, bool* p_open = NULL)
     {
         if (!ImGui::Begin(title, p_open))
         {
@@ -92,7 +92,9 @@ public:
                 {
                     const char* line_start = buf + LineOffsets[line_no];
                     const char* line_end = (line_no + 1 < LineOffsets.Size) ? (buf + LineOffsets[line_no + 1] - 1) : buf_end;
+                    ImGui::PushFont(font);
                     ImGui::TextUnformatted(line_start, line_end);
+                    ImGui::PopFont();
                 }
             }
             clipper.End();

@@ -262,8 +262,7 @@ inline void Menu::renderLog()
     ImGui::SetNextWindowSize(ImVec2(559, 400), ImGuiCond_FirstUseEver);
     ImGui::Begin("Log output", 0, flags);
     ImGui::End();
-    auto fontSize = msyh->FontSize;
-    g_log->draw("Log output");
+    g_log->draw(msyh, "Log output");
 }
 
 inline void Menu::renderControls()
@@ -326,6 +325,19 @@ inline void Menu::renderControls()
         ImGui::Text("Graph scale:");
         ImGui::SameLine();
         ImGui::SliderFloat("##Graph scale", &graphScale, 2000.f, 4000.f);
+        ImGui::BeginChild("Color edit", ImVec2(0, 0), true, ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_NavFlattened);
+        ImGui::PushItemWidth(-160);
+        for (int i = 1; i <= g_graph->getTotalLines(); i++) {
+            char buf[32];
+            sprintf_s(buf, "Line %d", i);
+            char buf2[32];
+            sprintf_s(buf2, "##%s", buf);
+            ImGui::ColorEdit4(buf2, &railwayLineColors[i].x, ImGuiColorEditFlags_AlphaBar);
+            ImGui::SameLine(0.0f, ImGui::GetStyle().ItemInnerSpacing.x);
+            ImGui::TextUnformatted(buf);
+        }
+        ImGui::PopItemWidth();
+        ImGui::EndChild();
         ImGui::EndTabItem();
     }
 
@@ -340,15 +352,17 @@ inline void Menu::renderAddControls()
     ImGui::SetNextWindowSize(ImVec2(580, 297), ImGuiCond_FirstUseEver);
     ImGui::Begin("Add...", &showAddControls, flags);
     ImGui::BeginTabBar("##TabBar");
+    static ds::Vector<bool> isLineSelected;
     static ds::Vector<int> selectedStationsIdx;
     static ds::Vector<int> selectedLinesIdx;
     static ds::Vector<int> adjStationsIdx;
     static ds::Vector<int> adjStationsCost;
     static char stationName[256];
-    static int lineNum = 0;
     static double latitude = 31.25;
     static double longitude = 121.45;
+    static ds::Vector<int> lineNums;
     ds::Vector<int> eraseList;
+    if(isLineSelected.size() < textLinesSize) isLineSelected.resize(textLinesSize, false);
     if (ImGui::BeginTabItem("Station", nullptr, selectedAddControlsTab[0] ? ImGuiTabItemFlags_SetSelected : 0))
     {
         selectedAddControlsTab[0] = false; //reset flag
@@ -358,7 +372,16 @@ inline void Menu::renderAddControls()
         ImGui::SameLine();
         ImGui::InputText("##InputStationName", stationName, IM_ARRAYSIZE(stationName));
         ImGui::SameLine();
-        ImGui::Combo("##NewStationLineNum", &lineNum, textLines, textLinesSize);
+        if (ImGui::BeginCombo("##NewStationLineNum", "Line numbers")) {
+            for (int i = 0; i < textLinesSize; i++) {
+                if (ImGui::Selectable(textLines[i], &isLineSelected[i]))
+                {
+                    if (isLineSelected[i]) lineNums.push_back(i + 1);
+                    else lineNums.find_erase(i + 1);
+                }
+            }
+            ImGui::EndCombo();
+        }
         ImGui::Text("Latitude:");
         ImGui::SameLine();
         ImGui::InputDouble("##Latitude", &latitude);
@@ -424,9 +447,9 @@ inline void Menu::renderAddControls()
                 LOG("[Error] A station name is required...\n");
             }
             else if (adjStationsIdx.size() > 0) {
-                if (g_graph->insert(stationName, { (uint32_t)lineNum + 1 }, latitude, longitude, adjStationsIdx, adjStationsCost))
+                if (g_graph->insert(stationName, lineNums, latitude, longitude, adjStationsIdx, adjStationsCost))
                 {
-                    LOG("[Info] Successfully saved new station to subway graph...\n");
+                    LOG("[Info] Successfully saved new station %s to subway graph...\n", stationName);
                     updateTexts();
                 }
                 else
