@@ -1,135 +1,63 @@
-#pragma once
+#ifndef HASH_MAP_H_
+#define HASH_MAP_H_
 
-/**
- * Copyright 2017 HashMap Development Team
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
+#include "HashBucket.hpp"
+#include <cstdint>
+#include <functional>
+#include <iostream>
+#include <mutex>
 
-#include "HashNode.hpp"
-#include "KeyHash.hpp"
-#include <cstddef>
-
+constexpr size_t HASH_SIZE_DEFAULT = 1031;
 namespace ds
 {
-    template <typename K, typename V, size_t tableSize, typename F = KeyHash<K, tableSize> >
-    class HashMap
+    template <typename K, typename V, typename F = std::hash<K>> class HashMap
     {
     public:
-        HashMap() :
-            table(),
-            hashFunc()
+        HashMap(size_t hashSize_ = HASH_SIZE_DEFAULT) : hashSize(hashSize_)
         {
+            hashTable = new HashBucket<K, V>[hashSize]; // create the hash table as an array of hash buckets
         }
 
         ~HashMap()
         {
-            // destroy all buckets one by one
-            for (size_t i = 0; i < tableSize; ++i) {
-                HashNode<K, V>* entry = table[i];
+            delete[] hashTable;
+        }
+        // Copy and Move of the HashMap are not supported at this moment
+        HashMap(const HashMap&) = delete;
+        HashMap(HashMap&&) = delete;
+        HashMap& operator=(const HashMap&) = delete;
+        HashMap& operator=(HashMap&&) = delete;
 
-                while (entry != NULL) {
-                    HashNode<K, V>* prev = entry;
-                    entry = entry->getNext();
-                    delete prev;
-                }
-
-                table[i] = NULL;
-            }
+        bool find(const K& key, V& value) const
+        {
+            size_t hashValue = hashFn(key) % hashSize;
+            return hashTable[hashValue].find(key, value);
         }
 
-        bool get(const K& key, V& value)
+        void insert(const K& key, const V& value)
         {
-            unsigned long hashValue = hashFunc(key);
-            HashNode<K, V>* entry = table[hashValue];
-
-            while (entry != NULL) {
-                if (entry->getKey() == key) {
-                    value = entry->getValue();
-                    return true;
-                }
-
-                entry = entry->getNext();
-            }
-
-            return false;
+            size_t hashValue = hashFn(key) % hashSize;
+            hashTable[hashValue].insert(key, value);
         }
 
-        void put(const K& key, const V& value)
+        void erase(const K& key)
         {
-            unsigned long hashValue = hashFunc(key);
-            HashNode<K, V>* prev = NULL;
-            HashNode<K, V>* entry = table[hashValue];
-
-            while (entry != NULL && entry->getKey() != key) {
-                prev = entry;
-                entry = entry->getNext();
-            }
-
-            if (entry == NULL) {
-                entry = new HashNode<K, V>(key, value);
-
-                if (prev == NULL) {
-                    // insert as first bucket
-                    table[hashValue] = entry;
-
-                }
-                else {
-                    prev->setNext(entry);
-                }
-
-            }
-            else {
-                // just update the value
-                entry->setValue(value);
-            }
+            size_t hashValue = hashFn(key) % hashSize;
+            hashTable[hashValue].erase(key);
         }
 
-        void remove(const K& key)
+        void clear()
         {
-            unsigned long hashValue = hashFunc(key);
-            HashNode<K, V>* prev = NULL;
-            HashNode<K, V>* entry = table[hashValue];
-
-            while (entry != NULL && entry->getKey() != key) {
-                prev = entry;
-                entry = entry->getNext();
-            }
-
-            if (entry == NULL) {
-                // key not found
-                return;
-
-            }
-            else {
-                if (prev == NULL) {
-                    // remove first bucket of the list
-                    table[hashValue] = entry->getNext();
-
-                }
-                else {
-                    prev->setNext(entry->getNext());
-                }
-
-                delete entry;
+            for (size_t i = 0; i < hashSize; i++)
+            {
+                (hashTable[i]).clear();
             }
         }
 
     private:
-        HashMap(const HashMap& other);
-        const HashMap& operator=(const HashMap& other);
-        // hash table
-        HashNode<K, V>* table[tableSize];
-        F hashFunc;
+        HashBucket<K, V>* hashTable;
+        F hashFn;
+        const size_t hashSize;
     };
 }
+#endif

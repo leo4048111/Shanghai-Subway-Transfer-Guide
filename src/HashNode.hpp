@@ -1,50 +1,46 @@
-#pragma once
-#include <cstddef>
+#ifndef HASH_NODE_H_
+#define HASH_NODE_H_
 
 namespace ds
 {
-    template <typename K, typename V>
-    class HashNode
+    template <typename K, typename V> class HashNode
     {
     public:
-        HashNode(const K& key, const V& value) :
-            _key(key), _value(value), _next(NULL)
+        HashNode()
         {
         }
-
-        K getKey() const
+        HashNode(K key_, V value_) : key(key_), value(value_)
         {
-            return _key;
+        }
+        ~HashNode()
+        {
+            next = nullptr;
         }
 
-        V getValue() const
+        HashNode(const HashNode&) = delete;
+        HashNode(HashNode&&) = delete;
+        HashNode& operator=(const HashNode&) = delete;
+        HashNode& operator=(HashNode&&) = delete;
+
+
+        const K& getKey() const
         {
-            return _value;
+            return key;
+        }
+        void setValue(V value_)
+        {
+            value = value_;
+        }
+        const V& getValue() const
+        {
+            return value;
         }
 
-        void setValue(V value)
-        {
-            _value = value;
-        }
-
-        HashNode* getNext() const
-        {
-            return _next;
-        }
-
-        void setNext(HashNode* next)
-        {
-            _next = next;
-        }
-
+        HashNode* next = nullptr; // Pointer to the next node in the same bucket
     private:
-        // key-value pair
-        K _key;
-        V _value;
-        // next bucket with the same key
-        HashNode* _next;
-        // disallow copy and assignment
-        HashNode(const HashNode&);
-        HashNode& operator=(const HashNode&);
+        K key;   // the hash key
+        V value; // the value corresponding to the key
     };
-}
+} // namespace CTSL
+
+#endif
