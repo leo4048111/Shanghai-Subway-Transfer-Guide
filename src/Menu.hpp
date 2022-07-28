@@ -104,6 +104,7 @@ private:
     bool showAddControls{ false };
     bool shouldDrawGrid{ true };
     bool shouldDrawRoute{ true };
+    bool shouldShowFPS{ true };
     float gridInterval{ 64.0 };
     float zoomScale{ 1.f };
     float graphScale{ 3000.f };
@@ -247,6 +248,15 @@ inline void Menu::renderMainMenuBar()
 
             ImGui::EndMenu();
         }
+        if (ImGui::BeginMenu("Modify"))
+        {
+            if (ImGui::MenuItem("Arc cost"))
+            {
+                memset(selectedAddControlsTab, 0, sizeof(selectedAddControlsTab));
+                selectedAddControlsTab[2] = true;
+                showAddControls = true;
+            }
+        }
         ImGui::EndMenu();
     }
 
@@ -279,6 +289,7 @@ inline void Menu::renderControls()
         static int terminalLineIdx = 0;
         static int tmpStartStationIdx = 0;
         static int tmpTerminalStationIdx = 0;
+        static bool minimalStations = true;
         ImGui::PushFont(msyh);
         ImGui::PushItemWidth(200.f);
         ImGui::Text("Start station:");
@@ -303,6 +314,9 @@ inline void Menu::renderControls()
             terminalStationIdx = g_graph->indexOf(UTF82string(textStations[terminalLineIdx][tmpTerminalStationIdx]));
         ImGui::PopFont();
         ImGui::PopItemWidth();
+        if (ImGui::RadioButton("Minimal transfer stations", minimalStations)) minimalStations = !minimalStations;
+        ImGui::SameLine();
+        if (ImGui::RadioButton("Minimal cost", !minimalStations))minimalStations = !minimalStations;
         if (ImGui::Button("Find best route."))
         {
             if (this->route != nullptr) {
@@ -310,9 +324,10 @@ inline void Menu::renderControls()
                 this->route = nullptr;
             }
             int** mat = nullptr;
-            int size = g_graph->asMat(mat);
+            int size = g_graph->asMat(mat, !minimalStations);
             this->routeLen = Dijkstra::Helper::calculate((const int**)mat, size, startStationIdx, terminalStationIdx, this->route);
         }
+
         ImGui::EndTabItem();
     }
 
@@ -321,6 +336,8 @@ inline void Menu::renderControls()
         ImGui::Checkbox("Grid view", &shouldDrawGrid);
         ImGui::SameLine();
         ImGui::Checkbox("Draw route", &shouldDrawRoute);
+        ImGui::SameLine();
+        ImGui::Checkbox("Show FPS", &shouldShowFPS);
         ImGui::Separator();
         ImGui::Text("Graph scale:");
         ImGui::SameLine();
@@ -350,7 +367,7 @@ inline void Menu::renderAddControls()
     ImGuiWindowFlags flags = 0;
     flags |= ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize;
     ImGui::SetNextWindowSize(ImVec2(580, 297), ImGuiCond_FirstUseEver);
-    ImGui::Begin("Add...", &showAddControls, flags);
+    ImGui::Begin("Additional controls", &showAddControls, flags);
     ImGui::BeginTabBar("##TabBar");
     static ds::Vector<bool> isLineSelected;
     static ds::Vector<int> selectedStationsIdx;
@@ -363,7 +380,7 @@ inline void Menu::renderAddControls()
     static ds::Vector<int> lineNums;
     ds::Vector<int> eraseList;
     if(isLineSelected.size() < textLinesSize) isLineSelected.resize(textLinesSize, false);
-    if (ImGui::BeginTabItem("Station", nullptr, selectedAddControlsTab[0] ? ImGuiTabItemFlags_SetSelected : 0))
+    if (ImGui::BeginTabItem("Add station", nullptr, selectedAddControlsTab[0] ? ImGuiTabItemFlags_SetSelected : 0))
     {
         selectedAddControlsTab[0] = false; //reset flag
         ImGui::PushFont(msyh);
@@ -469,9 +486,16 @@ inline void Menu::renderAddControls()
         adjStationsCost.clear();
     }
 
-    if (ImGui::BeginTabItem("Rail line", nullptr, selectedAddControlsTab[1] ? ImGuiTabItemFlags_SetSelected : 0))
+    if (ImGui::BeginTabItem("Add rail line", nullptr, selectedAddControlsTab[1] ? ImGuiTabItemFlags_SetSelected : 0))
     {
         selectedAddControlsTab[1] = false; //reset flag
+        ImGui::Text("dfashjkdbaskjdbaskjbdkj");
+        ImGui::EndTabItem();
+    }
+
+    if (ImGui::BeginTabItem("Modify arc cost", nullptr, selectedAddControlsTab[2] ? ImGuiTabItemFlags_SetSelected : 0))
+    {
+        selectedAddControlsTab[2] = false; //reset flag
         ImGui::Text("dfashjkdbaskjdbaskjbdkj");
         ImGui::EndTabItem();
     }
@@ -542,6 +566,12 @@ inline void Menu::renderCanvas()
             drawList->AddLine(ImVec2(canvas_tl.x, canvas_tl.y + y), ImVec2(canvas_br.x, canvas_tl.y + y), IM_COL32(200, 200, 200, 40));
     }
     renderGraph();
+    if (shouldShowFPS)
+    {
+        char fps[256];
+        sprintf_s(fps, "Frame rate: %.0f fps", ImGui::GetIO().Framerate);
+        drawList->AddText(ImVec2(canvas_tl.x + 5, canvas_tl.y + 5), IM_COL32(255, 255, 255, 255), fps);
+    }
     drawList->PopClipRect();
 
     ImGui::End();
@@ -568,8 +598,8 @@ inline void Menu::renderGraph()
             bool isDstInRoute = false;
             if (shouldDrawRoute && route != nullptr) {
                 for (int x = 0; x < routeLen; x++) {
-                    if (route[x] == g_graph->indexOf(vex.name)) isSrcInRoute = true;
-                    if (route[x] == g_graph->indexOf(adjVex.name)) isDstInRoute = true;
+                    if (!isSrcInRoute && route[x] == g_graph->indexOf(vex.name)) isSrcInRoute = true;
+                    if (!isDstInRoute && route[x] == g_graph->indexOf(adjVex.name)) isDstInRoute = true;
                 }
             }
 

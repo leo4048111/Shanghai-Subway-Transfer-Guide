@@ -88,7 +88,42 @@ namespace ds
 			return vertexes[idx];
 		}
 
-		const size_t asMat(int**& mat) const {
+		const bool updateArcCost(std::string s1, int lineNum1, std::string s2, int lineNum2, int newCost)
+		{
+			if (lineNum1 != lineNum2) return false;
+			int i1 = indexOf(s1);
+			int i2 = indexOf(s2);
+			if (i1 == -1 || i2 == -1) return false;
+			for (auto arc = vertexes[i1].first; arc != nullptr; arc = arc->next) {
+				if (arc->adjVex == i2) arc->cost = newCost;
+			}
+
+			for (auto arc = vertexes[i2].first; arc != nullptr; arc = arc->next) {
+				if (arc->adjVex == i1) arc->cost = newCost;
+			}
+
+			return true;
+		}
+
+		int getArcCost(std::string s1, int lineNum1, std::string s2, int lineNum2)
+		{
+			if (lineNum1 != lineNum2) return false;
+			int i1 = indexOf(s1);
+			int i2 = indexOf(s2);
+			if (i1 == -1 || i2 == -1) return false;
+			int ret = 0;
+			for (auto arc = vertexes[i1].first; arc != nullptr; arc = arc->next) {
+				if (arc->adjVex == i2) ret = arc->cost;
+			}
+
+			for (auto arc = vertexes[i2].first; arc != nullptr; arc = arc->next) {
+				if (arc->adjVex == i1) ret = arc->cost;
+			}
+
+			return ret;
+		}
+
+		const size_t asMat(int**& mat, bool isWeighted) const {
 			const int size = vertexes.size();
 			if (size <= 0) return 0;
 			if (mat == nullptr)
@@ -104,8 +139,8 @@ namespace ds
 				auto arc = vertexes[i].first;
 				while (arc != nullptr)
 				{
-					mat[arc->adjVex][i] = arc->cost;
-					mat[i][arc->adjVex] = arc->cost;
+					mat[arc->adjVex][i] = isWeighted ? arc->cost : 1;
+					mat[i][arc->adjVex] = isWeighted ? arc->cost : 1;
 					arc = arc->next;
 				}
 			}
@@ -139,23 +174,6 @@ namespace ds
 				}
 				std::cout << std::endl;
 			}
-		}
-
-		void printMat() {
-			int** mat = nullptr;
-			auto size = asMat(mat);
-			if (size <= 0) return;
-			for (uint32_t i = 0; i < size; i++)
-			{
-				for (uint32_t j = 0; j < size; j++)
-				{
-					std::cout << mat[i][j] << ' ';
-				}
-				std::cout << std::endl;
-			}
-
-			for (int i = 0; i < size; i++) free(mat[i]);
-			free(mat);
 		}
 #endif
 
