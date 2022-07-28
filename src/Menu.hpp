@@ -256,6 +256,7 @@ inline void Menu::renderMainMenuBar()
                 selectedAddControlsTab[2] = true;
                 showAddControls = true;
             }
+            ImGui::EndMenu();
         }
         ImGui::EndMenu();
     }
@@ -366,7 +367,7 @@ inline void Menu::renderAddControls()
 {
     ImGuiWindowFlags flags = 0;
     flags |= ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize;
-    ImGui::SetNextWindowSize(ImVec2(580, 297), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(580, 500), ImGuiCond_FirstUseEver);
     ImGui::Begin("Additional controls", &showAddControls, flags);
     ImGui::BeginTabBar("##TabBar");
     static ds::Vector<bool> isLineSelected;
@@ -496,7 +497,68 @@ inline void Menu::renderAddControls()
     if (ImGui::BeginTabItem("Modify arc cost", nullptr, selectedAddControlsTab[2] ? ImGuiTabItemFlags_SetSelected : 0))
     {
         selectedAddControlsTab[2] = false; //reset flag
-        ImGui::Text("dfashjkdbaskjdbaskjbdkj");
+        ImGui::PushFont(msyh);
+        ImGui::PushItemWidth(130.f);
+        static int selectedLine = 0;
+        static int selectedSrcVexIdx = 1;
+        static int selectedDstVexIdx = 0;
+        static int i1 = g_graph->indexOf(UTF82string(textStations[selectedLine][selectedSrcVexIdx]));
+        static int i2 = g_graph->indexOf(UTF82string(textStations[selectedLine][selectedDstVexIdx]));
+        static const char* buf[256];
+        if (ImGui::Combo("##ModifyArcLines", &selectedLine, textLines, textLinesSize))
+        {
+            selectedSrcVexIdx = 0;
+            selectedDstVexIdx = 0;
+            i1 = g_graph->indexOf(UTF82string(textStations[selectedLine][selectedSrcVexIdx]));
+            i2 = g_graph->indexOf(UTF82string(textStations[selectedLine][selectedDstVexIdx]));
+        }
+        ImGui::SameLine();
+        if (ImGui::Combo("##ModifyArcVex1", &selectedSrcVexIdx, textStations[selectedLine], textStationsCnts[selectedLine]))
+        {
+            selectedDstVexIdx = 0;
+            i1 = g_graph->indexOf(UTF82string(textStations[selectedLine][selectedSrcVexIdx]));
+            i2 = g_graph->indexOf(UTF82string(textStations[selectedLine][selectedDstVexIdx]));
+        }
+        if (textStations[selectedLine][selectedSrcVexIdx] != nullptr)
+        {
+            auto vex = g_graph->vexAt(g_graph->indexOf(UTF82string(textStations[selectedLine][selectedSrcVexIdx])));
+            ZeroMemory(buf, sizeof(buf));
+            int i = 0;
+            for (auto arc = vex.first; arc != nullptr; arc = arc->next) {
+                std::string str = string2UTF8(g_graph->vexAt(arc->adjVex).name);
+                buf[i] = (const char*)realloc((void*)buf[i], sizeof(char) * (str.size() + 1));
+                ZeroMemory((void*)buf[i], sizeof(char)* (str.size() + 1));
+                memcpy_s((void*)buf[i], str.size(), str.c_str(), str.size());
+                i++;
+            }
+            ImGui::SameLine();
+            if(ImGui::Combo("##ModifyArcVex2", &selectedDstVexIdx, buf, i))
+                i2 = g_graph->indexOf(UTF82string(buf[selectedDstVexIdx]));
+        }
+        static int newCost = 1;
+        ImGui::Text("Cost");
+        ImGui::SameLine();
+        ImGui::InputInt("##Cost", &newCost);
+        if (ImGui::Button("Update"))
+        {
+            if (g_graph->updateArcCost(i1, i2, newCost))
+            {
+                LOG("[Info] New cost %d has been updated between %s and %s...\n", newCost, textStations[selectedLine][selectedSrcVexIdx], buf[selectedDstVexIdx]);
+            }
+            else
+            {
+                LOG("[Error] Unable to update cost...\n");
+            }
+        }
+
+        //if (textStations[selectedLine][selectedSrcVexIdx] != nullptr && selectedSrcVexIdx != selectedDstVexIdx)
+        //{
+        //    int* cost = g_graph->getArcCost(UTF82string(textStations[selectedLine][selectedSrcVexIdx]), UTF82string(textStations[selectedLine][selectedDstVexIdx]));
+        //    ImGui::InputInt("##Cost", cost, 1);
+        //}
+
+        ImGui::PopItemWidth();
+        ImGui::PopFont();
         ImGui::EndTabItem();
     }
 
@@ -600,6 +662,7 @@ inline void Menu::renderGraph()
                 for (int x = 0; x < routeLen; x++) {
                     if (!isSrcInRoute && route[x] == g_graph->indexOf(vex.name)) isSrcInRoute = true;
                     if (!isDstInRoute && route[x] == g_graph->indexOf(adjVex.name)) isDstInRoute = true;
+                    if (isSrcInRoute && isDstInRoute) break;
                 }
             }
 

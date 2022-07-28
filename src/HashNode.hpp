@@ -41,6 +41,6 @@ namespace ds
         K key;   // the hash key
         V value; // the value corresponding to the key
     };
-} // namespace CTSL
+}
 
 #endif

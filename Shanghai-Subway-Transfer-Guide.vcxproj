@@ -162,6 +162,9 @@
     <ClInclude Include="src\font\font.hpp" />
     <ClInclude Include="src\font\Karla-Regular.hpp" />
     <ClInclude Include="src\font\msyh.hpp" />
+    <ClInclude Include="src\HashBucket.hpp" />
+    <ClInclude Include="src\HashMap.hpp" />
+    <ClInclude Include="src\HashNode.hpp" />
     <ClInclude Include="src\imgui\backend\imgui_impl_glfw.h" />
     <ClInclude Include="src\imgui\backend\imgui_impl_opengl2.h" />
     <ClInclude Include="src\imgui\imconfig.h" />

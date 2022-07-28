@@ -15,14 +15,14 @@ namespace ds
     public:
         HashMap(size_t hashSize_ = HASH_SIZE_DEFAULT) : hashSize(hashSize_)
         {
-            hashTable = new HashBucket<K, V>[hashSize]; // create the hash table as an array of hash buckets
+            hashTable = new HashBucket<K, V>[hashSize];
         }
 
         ~HashMap()
         {
             delete[] hashTable;
         }
-        // Copy and Move of the HashMap are not supported at this moment
+
         HashMap(const HashMap&) = delete;
         HashMap(HashMap&&) = delete;
         HashMap& operator=(const HashMap&) = delete;

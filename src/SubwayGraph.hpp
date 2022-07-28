@@ -2,6 +2,7 @@
 
 #include <string>
 #include "Vector.hpp"
+#include "HashMap.hpp"
 
 namespace ds
 {
@@ -63,6 +64,7 @@ namespace ds
 			for (auto elem : adjVexes)
 				if (elem >= vertexes.size()) return false;  //invalid idx check
 			vertexes.push_back(Vertex(name, lineNum, longitude, latitude, adjVexes, costs));
+			idxMap.insert(name, vertexes.size() - 1);
 			return true;
 		};
 
@@ -76,10 +78,8 @@ namespace ds
 		}
 
 		int indexOf(const std::string name) {
-			for (int i = 0; i < vertexes.size(); i++)
-			{
-				if (vertexes[i].name == name) return i;
-			}
+			int ret = -1;
+			if (idxMap.find(name, ret)) return ret;
 
 			return -1;
 		}
@@ -88,11 +88,8 @@ namespace ds
 			return vertexes[idx];
 		}
 
-		const bool updateArcCost(std::string s1, int lineNum1, std::string s2, int lineNum2, int newCost)
+		const bool updateArcCost(int i1, int i2, int newCost)
 		{
-			if (lineNum1 != lineNum2) return false;
-			int i1 = indexOf(s1);
-			int i2 = indexOf(s2);
 			if (i1 == -1 || i2 == -1) return false;
 			for (auto arc = vertexes[i1].first; arc != nullptr; arc = arc->next) {
 				if (arc->adjVex == i2) arc->cost = newCost;
@@ -103,24 +100,6 @@ namespace ds
 			}
 
 			return true;
-		}
-
-		int getArcCost(std::string s1, int lineNum1, std::string s2, int lineNum2)
-		{
-			if (lineNum1 != lineNum2) return false;
-			int i1 = indexOf(s1);
-			int i2 = indexOf(s2);
-			if (i1 == -1 || i2 == -1) return false;
-			int ret = 0;
-			for (auto arc = vertexes[i1].first; arc != nullptr; arc = arc->next) {
-				if (arc->adjVex == i2) ret = arc->cost;
-			}
-
-			for (auto arc = vertexes[i2].first; arc != nullptr; arc = arc->next) {
-				if (arc->adjVex == i1) ret = arc->cost;
-			}
-
-			return ret;
 		}
 
 		const size_t asMat(int**& mat, bool isWeighted) const {
@@ -178,7 +157,8 @@ namespace ds
 #endif
 
 	private:
-		Vector<Vertex> vertexes;
+		ds::Vector<Vertex> vertexes;
+		ds::HashMap<std::string, int> idxMap;
 	};
 }
 

@@ -111,5 +111,14 @@
     <ClInclude Include="src\font\msyh.hpp">
       <Filter>font</Filter>
     </ClInclude>
+    <ClInclude Include="src\HashBucket.hpp">
+      <Filter>ds</Filter>
+    </ClInclude>
+    <ClInclude Include="src\HashMap.hpp">
+      <Filter>ds</Filter>
+    </ClInclude>
+    <ClInclude Include="src\HashNode.hpp">
+      <Filter>ds</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
