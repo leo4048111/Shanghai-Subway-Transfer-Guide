@@ -59,7 +59,7 @@ namespace ds
 		SubwayGraph() = default;
 		~SubwayGraph() = default;
 
-		bool insert(const char* name, ds::Vector<int> lineNum, double latitude, double longitude, Vector<int> adjVexes, Vector<int> costs) {
+		bool insert(std::string name, ds::Vector<int> lineNum, double latitude, double longitude, Vector<int> adjVexes, Vector<int> costs) {
 			if (indexOf(name) != -1) return false; //duplication check
 			for (auto elem : adjVexes)
 				if (elem >= vertexes.size()) return false;  //invalid idx check
@@ -68,7 +68,7 @@ namespace ds
 			return true;
 		};
 
-		//this function implementation is wrong, dont use!!!
+		//this function implementation is wrong, please ignore
 		bool remove(std::string name) {
 			int idx = indexOf(name);
 			if (idx == -1) return false;
@@ -84,7 +84,7 @@ namespace ds
 			return -1;
 		}
 
-		Vertex vexAt(const int idx) {
+		Vertex& vexAt(const int idx) {
 			return vertexes[idx];
 		}
 
@@ -138,6 +138,13 @@ namespace ds
 				if (vec.find(vertexes[i].lineNum[j]) == vec.end()) vec.push_back(vertexes[i].lineNum[j]);
 			}
 			return vec.size();
+		}
+
+		bool addLine(std::string name, int lineNum) {
+			int idx = indexOf(name);
+			if (idx == -1) return false;
+			vertexes[idx].lineNum.push_back(lineNum);
+			return true;
 		}
 
 #ifdef _DEBUG

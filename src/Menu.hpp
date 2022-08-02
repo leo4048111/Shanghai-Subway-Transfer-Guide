@@ -48,6 +48,29 @@ private:
         }
     }
 
+    static inline void MenuItemURL(const char* name_, const char* URL_)
+    {
+        if (ImGui::MenuItem(name_))
+        {
+#ifdef _WIN32
+            ::ShellExecute(NULL, "open", URL_, NULL, NULL, SW_SHOWDEFAULT);
+#else
+#if __APPLE__
+            const char* open_executable = "open";
+#else
+            const char* open_executable = "xdg-open";
+#endif
+            char command[256];
+            snprintf(command, 256, "%s \"%s\"", open_executable, path);
+            system(command);
+#endif
+        }
+        if (ImGui::IsItemHovered())
+        {
+            ImGui::SetTooltip("Open in browser: %s", URL_);
+        }
+    }
+
     static inline void initSubwayGraph();
 
     inline void setupStyle();
@@ -91,6 +114,22 @@ private:
         std::string r(pszAnsi);
         delete[] pszAnsi;
         return r;
+    }
+
+    inline void printRoute()
+    {
+        if (route == nullptr) return;
+        LOG("[Info] %s: %s\n", u8"起点站", string2UTF8(g_graph->vexAt(route[0]).name).c_str());
+        for (int i = 1; i < routeLen - 1; i++)
+        {
+            auto vex = g_graph->vexAt(i);
+            if (vex.lineNum.size() > 1)
+            {
+                LOG("[Info] %s: %s\n", u8"换乘站", string2UTF8(g_graph->vexAt(route[i]).name).c_str());
+            }
+        }
+
+        LOG("[Info] %s: %s\n", u8"终点站", string2UTF8(g_graph->vexAt(route[routeLen - 1]).name).c_str());
     }
 
     inline void updateTexts();
@@ -261,7 +300,13 @@ inline void Menu::renderMainMenuBar()
         ImGui::EndMenu();
     }
 
-    helpMarker("This application is made by Tongji University CS student 2050250.");
+    if (ImGui::BeginMenu("About"))
+    {
+        MenuItemURL("Github page", "https://github.com/leo4048111/Shanghai-Subway-Transfer-Guide");
+        ImGui::EndMenu();
+    }
+
+    helpMarker("Tongji University Data Structure course design by 2050250.");
     ImGui::EndMainMenuBar();
 }
 
@@ -327,6 +372,8 @@ inline void Menu::renderControls()
             int** mat = nullptr;
             int size = g_graph->asMat(mat, !minimalStations);
             this->routeLen = Dijkstra::Helper::calculate((const int**)mat, size, startStationIdx, terminalStationIdx, this->route);
+            LOG("[Info] Search strategy: %s\n", minimalStations ? "Minimal transfer stations" : "Minimal cost");
+            printRoute();
         }
 
         ImGui::EndTabItem();
@@ -367,25 +414,26 @@ inline void Menu::renderAddControls()
 {
     ImGuiWindowFlags flags = 0;
     flags |= ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize;
-    ImGui::SetNextWindowSize(ImVec2(580, 500), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(501, 370), ImGuiCond_FirstUseEver);
     ImGui::Begin("Additional controls", &showAddControls, flags);
     ImGui::BeginTabBar("##TabBar");
+    static char stationName[256];
+    static double latitude = 31.25;
+    static double longitude = 121.45;
     static ds::Vector<bool> isLineSelected;
     static ds::Vector<int> selectedStationsIdx;
     static ds::Vector<int> selectedLinesIdx;
     static ds::Vector<int> adjStationsIdx;
     static ds::Vector<int> adjStationsCost;
-    static char stationName[256];
-    static double latitude = 31.25;
-    static double longitude = 121.45;
     static ds::Vector<int> lineNums;
     ds::Vector<int> eraseList;
     if(isLineSelected.size() < textLinesSize) isLineSelected.resize(textLinesSize, false);
     if (ImGui::BeginTabItem("Add station", nullptr, selectedAddControlsTab[0] ? ImGuiTabItemFlags_SetSelected : 0))
     {
+
         selectedAddControlsTab[0] = false; //reset flag
         ImGui::PushFont(msyh);
-        ImGui::PushItemWidth(130.f);
+        ImGui::PushItemWidth(153.f);
         ImGui::Text("New station name: ");
         ImGui::SameLine();
         ImGui::InputText("##InputStationName", stationName, IM_ARRAYSIZE(stationName));
@@ -464,8 +512,11 @@ inline void Menu::renderAddControls()
             if (stationName[0] == 0) {
                 LOG("[Error] A station name is required...\n");
             }
+            else if (lineNums.size() == 0) {
+                LOG("[Error] At least 1 line number should be specified...\n");
+            }
             else if (adjStationsIdx.size() > 0) {
-                if (g_graph->insert(stationName, lineNums, latitude, longitude, adjStationsIdx, adjStationsCost))
+                if (g_graph->insert(UTF82string(stationName), lineNums, latitude, longitude, adjStationsIdx, adjStationsCost))
                 {
                     LOG("[Info] Successfully saved new station %s to subway graph...\n", stationName);
                     updateTexts();
@@ -490,7 +541,74 @@ inline void Menu::renderAddControls()
     if (ImGui::BeginTabItem("Add rail line", nullptr, selectedAddControlsTab[1] ? ImGuiTabItemFlags_SetSelected : 0))
     {
         selectedAddControlsTab[1] = false; //reset flag
-        ImGui::Text("dfashjkdbaskjdbaskjbdkj");
+        int lineNums = g_graph->getTotalLines();
+        static int selectedLineIdx = 0;
+        static int startStationIdx = 0;
+        ImGui::PushFont(msyh);
+        ImGui::Text("Current rail line count:");
+        ImGui::SameLine();
+        ImGui::Text("%d", lineNums);
+        ImGui::Text("Rail line to be add:");
+        ImGui::SameLine();
+        ImGui::Text("%d", lineNums + 1);
+        ImGui::ColorEdit4("New rail line color", &railwayLineColors[lineNums + 1].x, ImGuiColorEditFlags_AlphaBar);
+        ImGui::Separator();
+        if (ImGui::BeginChild("##SelectExistingStationAsStart", ImVec2(0, 0), true))
+        {
+            ImGui::Text("Select existing station as start station:");
+            ImGui::PushItemWidth(233.f);
+            ImGui::Combo("##SelectedStartStationLine", &selectedLineIdx, textLines, textLinesSize);
+            ImGui::SameLine();
+            ImGui::Combo("##SelectedStartStation", &startStationIdx, textStations[selectedLineIdx], textStationsCnts[selectedLineIdx]);
+            ImGui::PopItemWidth();
+            if (ImGui::Button("Add new line##1")) {
+                if (g_graph->addLine(UTF82string(textStations[selectedLineIdx][startStationIdx]), lineNums + 1)) {
+                    LOG("[Info] Line %d has been added, %s as start station...", lineNums + 1, textStations[selectedLineIdx][startStationIdx]);
+                    updateTexts();
+                }
+                else
+                {
+                    LOG("[Error] Unable to add new line...");
+                }
+
+            }
+
+            ImGui::Separator();
+
+            static char startStationName[256];
+            static double startStationLatitude = 31.25;
+            static double startStationLongitude = 121.45;
+            ImGui::Text("Create new station as start station:");
+            ImGui::PushItemWidth(153.f);
+            ImGui::Text("New station name: ");
+            ImGui::SameLine();
+            ImGui::InputText("##InputStationName", startStationName, IM_ARRAYSIZE(startStationName));
+            ImGui::Text("Latitude:");
+            ImGui::SameLine();
+            ImGui::InputDouble("##Latitude", &startStationLatitude);
+            ImGui::SameLine();
+            ImGui::Text("Longitude:");
+            ImGui::SameLine();
+            ImGui::InputDouble("##Longitude", &startStationLongitude);
+            if (ImGui::Button("Add new line##2"))
+            {
+                if (g_graph->indexOf(UTF82string(startStationName)) != -1) 
+                {
+                    LOG("[Error] Unable to add new line, station name duplicated...");
+                }
+                else 
+                {
+                    g_graph->insert(UTF82string(startStationName), { lineNums + 1 }, startStationLatitude, startStationLongitude, {}, {});
+                    LOG("[Info] Line %d has been added, %s as start station...", lineNums + 1, startStationName);
+                    updateTexts();
+                }
+            }
+            ImGui::PopItemWidth();
+            ImGui::EndChild();
+        }
+
+
+        ImGui::PopFont();
         ImGui::EndTabItem();
     }
 
@@ -505,6 +623,8 @@ inline void Menu::renderAddControls()
         static int i1 = g_graph->indexOf(UTF82string(textStations[selectedLine][selectedSrcVexIdx]));
         static int i2 = g_graph->indexOf(UTF82string(textStations[selectedLine][selectedDstVexIdx]));
         static const char* buf[256];
+        ImGui::Text("Arc info:");
+        ImGui::SameLine();
         if (ImGui::Combo("##ModifyArcLines", &selectedLine, textLines, textLinesSize))
         {
             selectedSrcVexIdx = 0;
@@ -535,8 +655,9 @@ inline void Menu::renderAddControls()
             if(ImGui::Combo("##ModifyArcVex2", &selectedDstVexIdx, buf, i))
                 i2 = g_graph->indexOf(UTF82string(buf[selectedDstVexIdx]));
         }
+        ImGui::Separator();
         static int newCost = 1;
-        ImGui::Text("Cost");
+        ImGui::Text("New cost:");
         ImGui::SameLine();
         ImGui::InputInt("##Cost", &newCost);
         if (ImGui::Button("Update"))
@@ -710,7 +831,7 @@ inline void Menu::setupStyle()
 
     //color styles
     ImGui::StyleColorsDark();
-    this->railwayLineColors.resize(20);
+    this->railwayLineColors.resize(20, {1.f, 1.f, 1.f, 1.f});
     railwayLineColors[1] = { 0.81, 0.10, 0.10, 0.90 };  //line 1
     railwayLineColors[2] = { 0.10, 0.64, 0.10, 0.90 };  //line 2
     railwayLineColors[3] = { 0.98, 0.88, 0.01, 0.90 };  //line 3
@@ -772,9 +893,10 @@ inline void Menu::updateTexts()
         textLines = (const char**)malloc(sizeof(const char*) * totalLines);
         memset(textLines, 0, sizeof(const char*) * totalLines);
     }
-    else if (textLinesSize < bufferSize) {
+    else if (textLinesSize < totalLines) {
         const char** p = (const char**)realloc(textLines, sizeof(const char*) * totalLines);
         if (p != nullptr) textLines = p;
+        ZeroMemory(textLines, sizeof(const char*) * totalLines);
     }
     if (textLines == nullptr) return;
     textLinesSize = totalLines;
@@ -789,6 +911,7 @@ inline void Menu::updateTexts()
         memset((void*)textLines[i], 0, size * sizeof(char));
         memcpy_s((void*)textLines[i], size, str.c_str(), size * sizeof(char));
     }
+
 }
 
 inline void Menu::initSubwayGraph()
@@ -822,7 +945,7 @@ inline void Menu::initSubwayGraph()
     g_graph->insert("锦江乐园", { 1 }, 31.144096, 121.409563, { g_graph->indexOf("上海南站") }, { 1 });
     g_graph->insert("莲花路", { 1 }, 31.132708, 121.398158, { g_graph->indexOf("锦江乐园") }, { 1 });
     g_graph->insert("外环路", { 1 }, 31.123071, 121.388591, { g_graph->indexOf("莲花路") }, { 1 });
-    g_graph->insert("莘庄", { 1 }, 31.112825, 121.38038, { g_graph->indexOf("外环路") }, { 1 });
+    g_graph->insert("莘庄", { 1, 5 }, 31.112825, 121.38038, { g_graph->indexOf("外环路") }, { 1 });
 
     //railway line 2
     g_graph->insert("徐泾东", { 2 }, 31.191167, 121.296606, {  }, { });
@@ -898,6 +1021,19 @@ inline void Menu::initSubwayGraph()
     g_graph->insert("大木桥路", { 4 }, 31.196182, 121.459064, { g_graph->indexOf("鲁班路") }, { 1 });
     g_graph->insert("东安路", { 4 }, 31.192935, 121.45013, { g_graph->indexOf("大木桥路") }, { 1 });
     g_graph->insert("上海体育场", { 4 }, 31.187709, 121.439235, { g_graph->indexOf("东安路"), g_graph->indexOf("上海体育馆") }, { 1, 1 });
+
+    //railway line 5
+    g_graph->insert("春申路", { 5 }, 31.100213, 121.381092, { g_graph->indexOf("莘庄") }, { 1 });
+    g_graph->insert("银都路", { 5 }, 31.09124, 121.385647, { g_graph->indexOf("春申路") }, { 1 });
+    g_graph->insert("颛桥", { 5 }, 31.068858, 121.397278, { g_graph->indexOf("银都路") }, { 1 });
+    g_graph->insert("北桥", { 5 }, 31.046977, 121.405387, { g_graph->indexOf("颛桥") }, { 1 });
+    g_graph->insert("剑川路", { 5 }, 31.028423, 121.411866, { g_graph->indexOf("北桥") }, { 1 });
+    g_graph->insert("东川路", { 5 }, 31.020163, 121.415259, { g_graph->indexOf("剑川路") }, { 1 });
+    g_graph->insert("金平路", { 5 }, 31.012995, 121.405438, { g_graph->indexOf("东川路") }, { 1 });
+    g_graph->insert("华宁路", { 5 }, 31.009276, 121.390423, { g_graph->indexOf("金平路") }, { 1 });
+    g_graph->insert("文井路", { 5 }, 31.005506, 121.376092, { g_graph->indexOf("华宁路") }, { 1 });
+    g_graph->insert("闵行开发区", { 5 }, 31.00263, 121.365281, { g_graph->indexOf("文井路") }, { 1 });
+
 }
 
 inline auto g_menu = std::make_unique<Menu>();
