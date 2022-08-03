@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <assert.h>
 #include "Vector.hpp"
 #include "HashMap.hpp"
 
@@ -86,6 +87,11 @@ namespace ds
 
 		Vertex& vexAt(const int idx) {
 			return vertexes[idx];
+		}
+
+		bool isTransfer(const int idx) {
+			//assert(idx >= vertexes.size() || idx < 0);
+			return vertexes[idx].lineNum.size() > 1;
 		}
 
 		const bool updateArcCost(int i1, int i2, int newCost)

@@ -122,10 +122,33 @@ private:
         LOG("[Info] %s: %s\n", u8"∆µ„’æ", string2UTF8(g_graph->vexAt(route[0]).name).c_str());
         for (int i = 1; i < routeLen - 1; i++)
         {
-            auto vex = g_graph->vexAt(i);
-            if (vex.lineNum.size() > 1)
+            auto vex = g_graph->vexAt(route[i]);
+            auto lastVex = g_graph->vexAt(route[i - 1]);
+            auto nextVex = g_graph->vexAt(route[i + 1]);
+            int lastLineNum = -1;
+            int nextLineNum = -1;
+            for (int j = 0; j < vex.lineNum.size(); j++) {
+                if (lastLineNum == -1) {
+                    for (int k = 0; k < lastVex.lineNum.size(); k++) {
+                        if (vex.lineNum[j] == lastVex.lineNum[k]) lastLineNum = vex.lineNum[j];
+                    }
+                }
+
+                if (nextLineNum == -1) {
+                    for (int k = 0; k < nextVex.lineNum.size(); k++) {
+                        if (vex.lineNum[j] == nextVex.lineNum[k]) nextLineNum = vex.lineNum[j];
+                    }
+                }
+            }
+
+            if (lastLineNum == -1 || nextLineNum == -1) {
+                LOG("[Error] Unable to print route...");
+                return;
+            }
+
+            if (lastLineNum != nextLineNum)
             {
-                LOG("[Info] %s: %s\n", u8"ªª≥À’æ", string2UTF8(g_graph->vexAt(route[i]).name).c_str());
+                LOG("[Info] %s: %s %d%s --> %d%s\n", u8"ªª≥À’æ", string2UTF8(vex.name).c_str(), lastLineNum, u8"∫≈œﬂ", nextLineNum, u8"∫≈œﬂ");
             }
         }
 
@@ -167,8 +190,11 @@ private:
 
     //render data
     ds::Vector<ImVec4> railwayLineColors;
+    ImVec4 transferStationColor{ 0.52f, 0.52f, 0.52f, 1.f };
     ImVec4 routeColor{ 1.f, 0, 0, 1.f };
     float stationMarkRadius{ 5.f };
+    float transferStationMarkRadius{ 6.5f };
+    float stationMarkThickness{ 1.3f };
     int* route{ nullptr };
     int routeLen{ NULL };
 
@@ -768,14 +794,27 @@ inline void Menu::renderGraph()
     for (int i = 0; i < g_graph->size(); i++)
     {
         auto vex = g_graph->vexAt(i);
-        ImVec2 src((vex.coord_x - SH_LONGITUDE) * ZOOM(graphScale) + canvasOrigin.x, (vex.coord_y - SH_LATITUDE) * ZOOM(graphScale) + canvasOrigin.y);
-        drawList->AddCircle(src, ZOOM(stationMarkRadius), ImGui::ColorConvertFloat4ToU32(railwayLineColors[vex.lineNum[0]]), 0, ZOOM(1.3f));
+        ImVec2 src((vex.coord_x - SH_LONGITUDE) * ZOOM(graphScale) + canvasOrigin.x, -(vex.coord_y - SH_LATITUDE) * ZOOM(graphScale) + canvasOrigin.y);
+        if (!g_graph->isTransfer(i)) {
+            drawList->AddCircle(src, ZOOM(stationMarkRadius), ImGui::ColorConvertFloat4ToU32(railwayLineColors[vex.lineNum[0]]), 0, ZOOM(stationMarkThickness));
+        }
+        else {
+            drawList->AddCircle(src, ZOOM(transferStationMarkRadius), ImGui::ColorConvertFloat4ToU32(transferStationColor), 0, ZOOM(stationMarkThickness));
+            drawList->AddLine(
+                ImVec2(src.x - cos(45.f * M_PI / 180.f) * ZOOM(transferStationMarkRadius), src.y - sin(45.f * M_PI / 180.f) * ZOOM(transferStationMarkRadius)),
+                ImVec2(src.x + cos(45.f * M_PI / 180.f) * ZOOM(transferStationMarkRadius), src.y + sin(45.f * M_PI / 180.f) * ZOOM(transferStationMarkRadius)),
+                ImGui::ColorConvertFloat4ToU32(transferStationColor));
+            drawList->AddLine(
+                ImVec2(src.x - cos(45.f * M_PI / 180.f) * ZOOM(transferStationMarkRadius), src.y + sin(45.f * M_PI / 180.f) * ZOOM(transferStationMarkRadius)),
+                ImVec2(src.x + cos(45.f * M_PI / 180.f) * ZOOM(transferStationMarkRadius), src.y - sin(45.f * M_PI / 180.f) * ZOOM(transferStationMarkRadius)),
+                ImGui::ColorConvertFloat4ToU32(transferStationColor));
+        }
         drawList->AddText(msyh, ZOOM(10.f), src, IM_COL32(255, 255, 255, 255), string2UTF8(vex.name).c_str());
         for (auto arc = vex.first; arc != nullptr; arc = arc->next)
         {
             if (arc->adjVex < 0) continue;
             auto adjVex = g_graph->vexAt(arc->adjVex);
-            ImVec2 dst((adjVex.coord_x - SH_LONGITUDE) * ZOOM(graphScale) + canvasOrigin.x, (adjVex.coord_y - SH_LATITUDE) * ZOOM(graphScale) + canvasOrigin.y);
+            ImVec2 dst((adjVex.coord_x - SH_LONGITUDE) * ZOOM(graphScale) + canvasOrigin.x, -(adjVex.coord_y - SH_LATITUDE) * ZOOM(graphScale) + canvasOrigin.y);
             ImVec4 lineColor(NULL, NULL, NULL, NULL);
             bool isSrcInRoute = false;
             bool isDstInRoute = false;
@@ -804,8 +843,8 @@ inline void Menu::renderGraph()
 
             double angle = atan((src.y - dst.y) / (src.x - dst.x));
             drawList->AddLine(
-                ImVec2(src.x + (src.x > dst.x ? -1 : 1) * ZOOM(stationMarkRadius) * cos(angle), src.y + (src.x > dst.x ? -1 : 1) * ZOOM(stationMarkRadius) * sin(angle)),
-                ImVec2(dst.x + (src.x < dst.x ? -1 : 1) * ZOOM(stationMarkRadius) * cos(angle), dst.y + (src.x < dst.x ? -1 : 1) * ZOOM(stationMarkRadius) * sin(angle)),
+                ImVec2(src.x + (src.x > dst.x ? -1 : 1) * ZOOM(stationMarkRadius + stationMarkThickness) * cos(angle), src.y + (src.x > dst.x ? -1 : 1) * ZOOM(stationMarkRadius + stationMarkThickness) * sin(angle)),
+                ImVec2(dst.x + (src.x < dst.x ? -1 : 1) * ZOOM(stationMarkRadius + stationMarkThickness) * cos(angle), dst.y + (src.x < dst.x ? -1 : 1) * ZOOM(stationMarkRadius + stationMarkThickness) * sin(angle)),
                 ImGui::ColorConvertFloat4ToU32(lineColor),
                 ZOOM(lineWeight));
         }

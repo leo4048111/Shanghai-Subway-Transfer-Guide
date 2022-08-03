@@ -6,6 +6,8 @@
 
 #include <Windows.h>
 #include <iostream>
+#define _USE_MATH_DEFINES
+#include <math.h>
 
 #include <GLFW/glfw3.h>
 #pragma comment(lib, "glfw3.lib")
@@ -17,3 +19,4 @@
 #include "Vector.hpp"
 #include "Log.hpp"
 #include "font/font.hpp"
+
