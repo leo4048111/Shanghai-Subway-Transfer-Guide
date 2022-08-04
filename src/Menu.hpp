@@ -418,6 +418,9 @@ inline void Menu::renderControls()
         ImGui::SliderFloat("##Graph scale", &graphScale, 2000.f, 4000.f);
         ImGui::BeginChild("Color edit", ImVec2(0, 0), true, ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_NavFlattened);
         ImGui::PushItemWidth(-160);
+        ImGui::ColorEdit4("##TransferStationColor", &transferStationColor.x, ImGuiColorEditFlags_AlphaBar);
+        ImGui::SameLine(0.0f, ImGui::GetStyle().ItemInnerSpacing.x);
+        ImGui::TextUnformatted("Transfer station");
         for (int i = 1; i <= g_graph->getTotalLines(); i++) {
             char buf[32];
             sprintf_s(buf, "Line %d", i);
