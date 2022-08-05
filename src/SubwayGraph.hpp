@@ -12,6 +12,7 @@ namespace ds
 		Arc(int adjVex, int cost, Arc* next) :adjVex(adjVex), cost(cost), next(next) {};
 		int adjVex;
 		int cost;
+		ds::Vector<int> lineNum;
 		Arc* next{ nullptr };
 	};
 
@@ -65,6 +66,19 @@ namespace ds
 			for (auto elem : adjVexes)
 				if (elem >= vertexes.size()) return false;  //invalid idx check
 			vertexes.push_back(Vertex(name, lineNum, longitude, latitude, adjVexes, costs));
+			auto vex = vertexes.back();
+			for (auto arc = vex.first; arc != nullptr; arc = arc->next)
+			{
+				auto vex2 = vertexes[arc->adjVex];
+				for (int i = 0; i < vex.lineNum.size(); i++)
+				{
+					for (int j = 0; j < vex2.lineNum.size(); j++)
+					{
+						if (vex.lineNum[i] == vex2.lineNum[j]) arc->lineNum.push_back(vex.lineNum[i]);
+					}
+				}
+			}
+
 			idxMap.insert(name, vertexes.size() - 1);
 			return true;
 		};
