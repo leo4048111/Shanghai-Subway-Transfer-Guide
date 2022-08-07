@@ -989,8 +989,8 @@ inline void Menu::initSubwayGraph()
 
     //railway line 2
     g_graph->insert("徐泾东", { 2 }, 31.191167, 121.296606, {  }, { });
-    g_graph->insert("虹桥火车站", { 2 }, 31.195913, 121.316973, { g_graph->indexOf("徐泾东") }, { 1 });
-    g_graph->insert("虹桥二号航站楼", { 2 }, 31.197857, 121.33034, { g_graph->indexOf("虹桥火车站") }, { 1 });
+    g_graph->insert("虹桥火车站", { 2, 10 }, 31.195913, 121.316973, { g_graph->indexOf("徐泾东") }, { 1 });
+    g_graph->insert("虹桥二号航站楼", { 2, 10 }, 31.197857, 121.33034, { g_graph->indexOf("虹桥火车站") }, { 1 });
     g_graph->insert("淞虹路", { 2 }, 31.220115, 121.354602, { g_graph->indexOf("虹桥二号航站楼") }, { 1 });
     g_graph->insert("北新泾", { 2 }, 31.218304, 121.369403, { g_graph->indexOf("淞虹路") }, { 1 });
     g_graph->insert("威宁路", { 2 }, 31.216678, 121.382421, { g_graph->indexOf("北新泾") }, { 1 });
@@ -1203,6 +1203,8 @@ inline void Menu::initSubwayGraph()
     g_graph->insert("三门路", { 10 }, 31.314943, 121.503668, { g_graph->indexOf("江湾体育场") }, { 1 });
     g_graph->insert("殷高东路", { 10 }, 31.324067, 121.502133, { g_graph->indexOf("三门路") }, { 1 });
     g_graph->insert("新江湾城", { 10 }, 31.330775, 121.502144, { g_graph->indexOf("殷高东路") }, { 1 });
+    g_graph->insert("虹桥一号航站楼", { 10 }, 31.193287, 121.342856, { g_graph->indexOf("虹桥二号航站楼") }, { 1 });
+    g_graph->insert("上海动物园", { 10 }, 31.19218, 121.362421, { g_graph->indexOf("虹桥一号航站楼"), g_graph->indexOf("龙溪路")}, {1, 1});
 
 }
 
