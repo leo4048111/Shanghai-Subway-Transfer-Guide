@@ -871,11 +871,13 @@ inline void Menu::setupStyle()
     railwayLineColors[3] = { 0.98, 0.88, 0.01, 0.90 };  //line 3
     railwayLineColors[4] = { 0.46, 0.10, 0.46, 0.90 };  //line 4
     railwayLineColors[5] = { 0.82, 0.10, 0.82, 0.90 };  //line 5
-    railwayLineColors[6] = { 1.0f, 0.28, 0.46, 0.90 };  //line 6
-    railwayLineColors[7] = { 1.0f, 0.50, 0.00, 0.90 };  //line 7
-    railwayLineColors[8] = { 0.0f, 0.40, 0.80, 0.90 };  //line 8
+    railwayLineColors[6] = { 1.00, 0.28, 0.46, 0.90 };  //line 6
+    railwayLineColors[7] = { 1.00, 0.50, 0.00, 0.90 };  //line 7
+    railwayLineColors[8] = { 0.00, 0.40, 0.80, 0.90 };  //line 8
     railwayLineColors[9] = { 0.58, 0.83, 0.86, 0.90 };  //line 9
     railwayLineColors[10] = { 0.79, 0.65, 0.84, 0.90 };  //line 10
+    railwayLineColors[11] = { 0.50, 0.00, 0.00, 0.90 };  //line 11
+
 }
 
 inline void Menu::updateTexts()
@@ -978,7 +980,7 @@ inline void Menu::initSubwayGraph()
     g_graph->insert("陕西南路", { 1, 10 }, 31.217738, 121.454264, { g_graph->indexOf("黄陂南路") }, { 1 });
     g_graph->insert("常熟路", { 1, 7 }, 31.21558, 121.445584, { g_graph->indexOf("陕西南路") }, { 1 });
     g_graph->insert("衡山路", { 1 }, 31.206849, 121.442126, { g_graph->indexOf("常熟路") }, { 1 });
-    g_graph->insert("徐家汇", { 1, 9 }, 31.196382, 121.432132, { g_graph->indexOf("衡山路") }, { 1 });
+    g_graph->insert("徐家汇", { 1, 9, 11 }, 31.196382, 121.432132, { g_graph->indexOf("衡山路") }, { 1 });
     g_graph->insert("上海体育馆", { 1, 4 }, 31.184332, 121.432371, { g_graph->indexOf("徐家汇") }, { 1 });
     g_graph->insert("漕宝路", { 1 }, 31.170181, 121.43041, { g_graph->indexOf("上海体育馆") }, { 1 });
     g_graph->insert("上海南站", { 1, 3 }, 31.155939, 121.425684, { g_graph->indexOf("漕宝路") }, { 1 });
@@ -996,7 +998,7 @@ inline void Menu::initSubwayGraph()
     g_graph->insert("威宁路", { 2 }, 31.216678, 121.382421, { g_graph->indexOf("北新泾") }, { 1 });
     g_graph->insert("娄山关路", { 2 }, 31.212889, 121.399621, { g_graph->indexOf("威宁路") }, { 1 });
     g_graph->insert("中山公园", { 2, 3, 4 }, 31.219906, 121.41183, { g_graph->indexOf("娄山关路") }, { 1 });
-    g_graph->insert("江苏路", { 2 }, 31.222037, 121.426651, { g_graph->indexOf("中山公园") }, { 1 });
+    g_graph->insert("江苏路", { 2, 11 }, 31.222037, 121.426651, { g_graph->indexOf("中山公园") }, { 1 });
     g_graph->insert("静安寺", { 2, 7 }, 31.224904, 121.442854, { g_graph->indexOf("江苏路"), g_graph->indexOf("常熟路") }, { 1, 1 });
     g_graph->insert("南京西路", { 2 }, 31.230765, 121.456158, { g_graph->indexOf("静安寺"), g_graph->indexOf("人民广场") }, { 1, 1 });
     g_graph->insert("南京东路", { 2, 10 }, 31.239933, 121.479767, { g_graph->indexOf("人民广场") }, { 1 });
@@ -1037,7 +1039,7 @@ inline void Menu::initSubwayGraph()
     g_graph->insert("宝山路", { 3, 4 }, 31.253462, 121.471965, { g_graph->indexOf("东宝兴路"), g_graph->indexOf("上海火车站") }, { 1, 1 });
     g_graph->insert("中潭路", { 3,4 }, 31.256515, 121.43642, { g_graph->indexOf("上海火车站") }, { 1 });
     g_graph->insert("镇坪路", { 3,4, 7 }, 31.248484, 121.425746, { g_graph->indexOf("中潭路") }, { 1 });
-    g_graph->insert("曹杨路", { 3,4 }, 31.240572, 121.413032, { g_graph->indexOf("镇坪路") }, { 1 });
+    g_graph->insert("曹杨路", { 3,4, 11 }, 31.240572, 121.413032, { g_graph->indexOf("镇坪路") }, { 1 });
     g_graph->insert("金沙江路", { 3,4 }, 31.233724, 121.408356, { g_graph->indexOf("曹杨路"), g_graph->indexOf("中山公园") }, { 1, 1 });
     g_graph->insert("延安西路", { 3, 4 }, 31.211608, 121.412437, { g_graph->indexOf("中山公园") }, { 1 });
     g_graph->insert("虹桥路", { 3, 4, 10 }, 31.198768, 121.416953, { g_graph->indexOf("延安西路") }, { 1 });
@@ -1100,7 +1102,7 @@ inline void Menu::initSubwayGraph()
     g_graph->insert("华夏西路", { 6 }, 31.151917, 121.510198, { g_graph->indexOf("高青路") }, { 1 });
     g_graph->insert("上南路", { 6 }, 31.151197, 121.501943, { g_graph->indexOf("华夏西路") }, { 1 });
     g_graph->insert("灵岩南路", { 6 }, 31.150741, 121.490633, { g_graph->indexOf("上南路") }, { 1 });
-    g_graph->insert("东方体育中心", { 6, 8 }, 31.155594, 121.475962, { g_graph->indexOf("灵岩南路") }, { 1 });
+    g_graph->insert("东方体育中心", { 6, 8, 11 }, 31.155594, 121.475962, { g_graph->indexOf("灵岩南路") }, { 1 });
 
     //railway line 7
     g_graph->insert("美兰湖", { 7 }, 31.40376, 121.345311, {}, {});
@@ -1189,7 +1191,7 @@ inline void Menu::initSubwayGraph()
     g_graph->insert("水城路", { 10 }, 31.201175, 121.387217, { g_graph->indexOf("龙溪路") }, { 1 });
     g_graph->insert("伊犁路", { 10 }, 31.200578, 121.399493, { g_graph->indexOf("水城路") }, { 1 });
     g_graph->insert("宋园路", { 10 }, 31.19845, 121.407306, { g_graph->indexOf("伊犁路"), g_graph->indexOf("虹桥路")}, {1, 1});
-    g_graph->insert("交通大学", { 10 }, 31.204057, 121.429925, { g_graph->indexOf("虹桥路") }, { 1 });
+    g_graph->insert("交通大学", { 10, 11 }, 31.204057, 121.429925, { g_graph->indexOf("虹桥路"), g_graph->indexOf("徐家汇"), g_graph->indexOf("江苏路")}, {1, 1, 1});
     g_graph->insert("上海图书馆", { 10 }, 31.209953, 121.439737, { g_graph->indexOf("交通大学"), g_graph->indexOf("陕西南路")}, {1, 1});
     g_graph->insert("新天地", { 10 }, 31.21801, 121.470609, { g_graph->indexOf("陕西南路"), g_graph->indexOf("老西门")}, { 1, 1 });
     g_graph->insert("豫园", { 10 }, 31.230204, 121.482809, { g_graph->indexOf("南京东路"), g_graph->indexOf("老西门") }, { 1, 1 });
@@ -1205,6 +1207,42 @@ inline void Menu::initSubwayGraph()
     g_graph->insert("新江湾城", { 10 }, 31.330775, 121.502144, { g_graph->indexOf("殷高东路") }, { 1 });
     g_graph->insert("虹桥一号航站楼", { 10 }, 31.193287, 121.342856, { g_graph->indexOf("虹桥二号航站楼") }, { 1 });
     g_graph->insert("上海动物园", { 10 }, 31.19218, 121.362421, { g_graph->indexOf("虹桥一号航站楼"), g_graph->indexOf("龙溪路")}, {1, 1});
+
+    //railway line 11
+    g_graph->insert("迪士尼", { 11 }, 31.143585, 121.664058, { }, { });
+    g_graph->insert("康新公路", { 11 }, 31.132619, 121.613039, { g_graph->indexOf("迪士尼")}, {1});
+    g_graph->insert("秀沿路", { 11 }, 31.140102, 121.59458, { g_graph->indexOf("康新公路") }, { 1 });
+    g_graph->insert("罗山路", { 11 }, 31.155534, 121.589014, { g_graph->indexOf("秀沿路") }, { 1 });
+    g_graph->insert("御桥", { 11 }, 31.160612, 121.566723, { g_graph->indexOf("罗山路") }, { 1 });
+    g_graph->insert("浦三路", { 11 }, 31.153062, 121.534824, { g_graph->indexOf("御桥") }, { 1 });
+    g_graph->insert("三林东", { 11 }, 31.148612, 121.518813, { g_graph->indexOf("浦三路") }, { 1 });
+    g_graph->insert("三林", { 11 }, 31.135038, 121.506602, { g_graph->indexOf("三林东"), g_graph->indexOf("东方体育中心")}, {1, 1});
+    g_graph->insert("龙耀路", { 11 }, 31.16195, 121.454981, { g_graph->indexOf("东方体育中心") }, { 1 });
+    g_graph->insert("云锦路", { 11 }, 31.1683, 121.45391, { g_graph->indexOf("龙耀路") }, { 1 });
+    g_graph->insert("龙华", { 11 }, 31.174903, 121.448222, { g_graph->indexOf("云锦路") }, { 1 });
+    g_graph->insert("上海游泳馆", { 11 }, 31.180894, 121.437013, { g_graph->indexOf("龙华"), g_graph->indexOf("徐家汇") }, { 1, 1 });
+    g_graph->insert("隆德路", { 11 }, 31.232292, 121.418873, { g_graph->indexOf("江苏路"), g_graph->indexOf("曹杨路")}, {1, 1});
+    g_graph->insert("枫桥路", { 11 }, 31.243798, 121.406395, { g_graph->indexOf("曹杨路") }, { 1 });
+    g_graph->insert("真如", { 11 }, 31.252412, 121.402647, { g_graph->indexOf("枫桥路") }, { 1 });
+    g_graph->insert("上海西站", { 11 }, 31.264456, 121.396762, { g_graph->indexOf("真如") }, { 1 });
+    g_graph->insert("李子园", { 11 }, 31.270706, 121.385317, { g_graph->indexOf("上海西站") }, { 1 });
+    g_graph->insert("祁连山路", { 11 }, 31.273387, 121.371288, { g_graph->indexOf("李子园") }, { 1 });
+    g_graph->insert("武威路", { 11 }, 31.278923, 121.360149, { g_graph->indexOf("祁连山路") }, { 1 });
+    g_graph->insert("桃浦新村", { 11 }, 31.283593, 121.344832, { g_graph->indexOf("武威路") }, { 1 });
+    g_graph->insert("南翔", { 11 }, 31.298914, 121.318821, { g_graph->indexOf("桃浦新村") }, { 1 });
+    g_graph->insert("陈翔公路", { 11 }, 31.30844, 121.30243, { g_graph->indexOf("南翔") }, { 1 });
+    g_graph->insert("马陆", { 11 }, 31.32134, 121.271772, { g_graph->indexOf("陈翔公路") }, { 1 });
+    g_graph->insert("嘉定新城", { 11 }, 31.33206, 121.249994, { g_graph->indexOf("马陆") }, { 1 });
+    g_graph->insert("上海赛车场", { 11 }, 31.333791, 121.221681, { g_graph->indexOf("嘉定新城") }, { 1 });
+    g_graph->insert("昌吉东路", { 11 }, 31.295534, 121.195899, { g_graph->indexOf("上海赛车场") }, { 1 });
+    g_graph->insert("上海汽车城", { 11 }, 31.287248, 121.176316, { g_graph->indexOf("昌吉东路") }, { 1 });
+    g_graph->insert("安亭", { 11 }, 31.290317, 121.157537, { g_graph->indexOf("上海汽车城") }, { 1 });
+    g_graph->insert("兆丰路", { 11 }, 31.290732, 121.145505, { g_graph->indexOf("安亭") }, { 1 });
+    g_graph->insert("光明路", { 11 }, 31.29754, 121.113012, { g_graph->indexOf("兆丰路") }, { 1 });
+    g_graph->insert("花桥", { 11 }, 31.300411, 121.099522, { g_graph->indexOf("光明路") }, { 1 });
+    g_graph->insert("白银路", { 11 }, 31.347582, 121.240775, { g_graph->indexOf("嘉定新城") }, { 1 });
+    g_graph->insert("嘉定西", { 11 }, 31.379074, 121.22347, { g_graph->indexOf("白银路") }, { 1 });
+    g_graph->insert("嘉定北", { 11 }, 31.393442, 121.233052, { g_graph->indexOf("嘉定西") }, { 1 });
 
 }
 
