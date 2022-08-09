@@ -167,6 +167,7 @@ private:
     bool shouldDrawGrid{ true };
     bool shouldDrawRoute{ true };
     bool shouldShowFPS{ true };
+    bool shouldDrawRouteCost{ false };
     float gridInterval{ 64.0 };
     float zoomScale{ 1.f };
     float graphScale{ 3000.f };
@@ -193,6 +194,7 @@ private:
     ds::Vector<bool> isRailwayLineIgnored;
     ImVec4 transferStationColor{ 0.52f, 0.52f, 0.52f, 1.f };
     ImVec4 routeColor{ 1.f, 0, 0, 1.f };
+    ImVec4 graphTextColor{ 1.f, 1.f, 1.f, 1.f };
     float stationMarkRadius{ 5.f };
     float transferStationMarkRadius{ 6.5f };
     float stationMarkThickness{ 1.3f };
@@ -387,7 +389,7 @@ inline void Menu::renderControls()
             terminalStationIdx = g_graph->indexOf(UTF82string(textStations[terminalLineIdx][tmpTerminalStationIdx]));
         ImGui::PopFont();
         ImGui::PopItemWidth();
-        if (ImGui::RadioButton("Minimal transfer stations", minimalStations)) minimalStations = !minimalStations;
+        if (ImGui::RadioButton("Minimal stations", minimalStations)) minimalStations = !minimalStations;
         ImGui::SameLine();
         if (ImGui::RadioButton("Minimal cost", !minimalStations))minimalStations = !minimalStations;
         if (ImGui::Button("Find best route."))
@@ -413,6 +415,8 @@ inline void Menu::renderControls()
         ImGui::Checkbox("Draw route", &shouldDrawRoute);
         ImGui::SameLine();
         ImGui::Checkbox("Show FPS", &shouldShowFPS);
+        ImGui::SameLine();
+        ImGui::Checkbox("Show route cost", &shouldDrawRouteCost);
         ImGui::Separator();
         ImGui::Text("Graph scale:");
         ImGui::SameLine();
@@ -422,6 +426,9 @@ inline void Menu::renderControls()
         ImGui::ColorEdit4("##TransferStationColor", &transferStationColor.x, ImGuiColorEditFlags_AlphaBar);
         ImGui::SameLine(0.0f, ImGui::GetStyle().ItemInnerSpacing.x);
         ImGui::TextUnformatted("Transfer station");
+        ImGui::ColorEdit4("##GraphTextColor", &graphTextColor.x, ImGuiColorEditFlags_AlphaBar);
+        ImGui::SameLine(0.0f, ImGui::GetStyle().ItemInnerSpacing.x);
+        ImGui::TextUnformatted("Graph text");
         for (int i = 1; i <= g_graph->getTotalLines(); i++) {
             char buf[32];
             sprintf_s(buf, "Line %d", i);
@@ -688,6 +695,7 @@ inline void Menu::renderAddControls()
             ImGui::SameLine();
             if(ImGui::Combo("##ModifyArcVex2", &selectedDstVexIdx, buf, i))
                 i2 = g_graph->indexOf(UTF82string(buf[selectedDstVexIdx]));
+            i2 = g_graph->indexOf(UTF82string(buf[selectedDstVexIdx]));
         }
         ImGui::Separator();
         static int newCost = 1;
@@ -820,7 +828,7 @@ inline void Menu::renderGraph()
                 ImVec2(src.x + cos(45.f * M_PI / 180.f) * ZOOM(transferStationMarkRadius), src.y - sin(45.f * M_PI / 180.f) * ZOOM(transferStationMarkRadius)),
                 ImGui::ColorConvertFloat4ToU32(transferStationColor));
         }
-        drawList->AddText(msyh, ZOOM(10.f), src, IM_COL32(255, 255, 255, 255), string2UTF8(vex.name).c_str());
+        drawList->AddText(msyh, ZOOM(10.f), src, ImGui::ColorConvertFloat4ToU32(graphTextColor), string2UTF8(vex.name).c_str());
         for (auto arc = vex.first; arc != nullptr; arc = arc->next)
         {
             if (arc->adjVex < 0) continue;
@@ -850,6 +858,12 @@ inline void Menu::renderGraph()
                     ImGui::ColorConvertFloat4ToU32(lineColor),
                     ZOOM(lineWeight));
                 modifierAngle = -modifierAngle;
+            }
+
+            if (shouldDrawRouteCost) {
+                char buf[32];
+                sprintf_s(buf, "%d", arc->cost);
+                drawList->AddText(ImVec2((src.x + dst.x) / 2, (src.y + dst.y) / 2), ImGui::ColorConvertFloat4ToU32(graphTextColor), buf);
             }
         }
     }
