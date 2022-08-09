@@ -160,6 +160,7 @@
     <ClInclude Include="src\Dijkstra.hpp" />
     <ClInclude Include="src\font\Cousine-Regular.hpp" />
     <ClInclude Include="src\font\font.hpp" />
+    <ClInclude Include="src\font\fontawesome.hpp" />
     <ClInclude Include="src\font\Karla-Regular.hpp" />
     <ClInclude Include="src\font\msyh.hpp" />
     <ClInclude Include="src\HashBucket.hpp" />

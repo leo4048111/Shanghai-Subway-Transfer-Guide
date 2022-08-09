@@ -356,7 +356,7 @@ inline void Menu::renderControls()
     flags |= ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
     ImGui::SetNextWindowPos(ImVec2(0, 18), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(558, 297), ImGuiCond_FirstUseEver);
-    ImGui::Begin("Controls", 0, flags);
+    ImGui::Begin(ICON_FA_COG"Controls", 0, flags);
     ImGui::BeginTabBar("##TabBar");
     if (ImGui::BeginTabItem("Options"))
     {
@@ -392,7 +392,7 @@ inline void Menu::renderControls()
         if (ImGui::RadioButton("Minimal stations", minimalStations)) minimalStations = !minimalStations;
         ImGui::SameLine();
         if (ImGui::RadioButton("Minimal cost", !minimalStations))minimalStations = !minimalStations;
-        if (ImGui::Button("Find best route."))
+        if (ImGui::Button(ICON_FA_SEARCH " Find best route."))
         {
             if (this->route != nullptr) {
                 free(this->route);
@@ -456,7 +456,7 @@ inline void Menu::renderAddControls()
     ImGuiWindowFlags flags = 0;
     flags |= ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize;
     ImGui::SetNextWindowSize(ImVec2(501, 370), ImGuiCond_FirstUseEver);
-    ImGui::Begin("Additional controls", &showAddControls, flags);
+    ImGui::Begin(ICON_FA_USER_COG "Additional controls", &showAddControls, flags);
     ImGui::BeginTabBar("##TabBar");
     static char stationName[256];
     static double latitude = 31.25;
@@ -471,7 +471,6 @@ inline void Menu::renderAddControls()
     if(isLineSelected.size() < textLinesSize) isLineSelected.resize(textLinesSize, false);
     if (ImGui::BeginTabItem("Add station", nullptr, selectedAddControlsTab[0] ? ImGuiTabItemFlags_SetSelected : 0))
     {
-
         selectedAddControlsTab[0] = false; //reset flag
         ImGui::PushFont(msyh);
         ImGui::PushItemWidth(153.f);
@@ -540,7 +539,7 @@ inline void Menu::renderAddControls()
             selectedLinesIdx.erase(selectedLinesIdx.begin() + eraseList[i]);
             adjStationsIdx.erase(adjStationsIdx.begin() + eraseList[i]);
         }
-        if (ImGui::Button("Add adjacent stations")) {
+        if (ImGui::Button(ICON_FA_PLUS " Add adjacent stations")) {
             selectedLinesIdx.push_back(0);
             selectedStationsIdx.push_back(0);
             if(textStations[selectedLinesIdx.back()][selectedStationsIdx.back()] != nullptr)
@@ -549,7 +548,7 @@ inline void Menu::renderAddControls()
         }
         ImGui::SameLine();
 
-        if (ImGui::Button("Save new station")) {
+        if (ImGui::Button(ICON_FA_SAVE " Save new station")) {
             if (stationName[0] == 0) {
                 LOG("[Error] A station name is required...\n");
             }
@@ -585,7 +584,6 @@ inline void Menu::renderAddControls()
         int lineNums = g_graph->getTotalLines();
         static int selectedLineIdx = 0;
         static int startStationIdx = 0;
-        ImGui::PushFont(msyh);
         ImGui::Text("Current rail line count:");
         ImGui::SameLine();
         ImGui::Text("%d", lineNums);
@@ -596,13 +594,15 @@ inline void Menu::renderAddControls()
         ImGui::Separator();
         if (ImGui::BeginChild("##SelectExistingStationAsStart", ImVec2(0, 0), true))
         {
+            ImGui::PushFont(msyh);
             ImGui::Text("Select existing station as start station:");
             ImGui::PushItemWidth(233.f);
             ImGui::Combo("##SelectedStartStationLine", &selectedLineIdx, textLines, textLinesSize);
             ImGui::SameLine();
             ImGui::Combo("##SelectedStartStation", &startStationIdx, textStations[selectedLineIdx], textStationsCnts[selectedLineIdx]);
             ImGui::PopItemWidth();
-            if (ImGui::Button("Add new line##1")) {
+            ImGui::PopFont();
+            if (ImGui::Button(ICON_FA_PLUS " Add new line##1")) {
                 if (g_graph->addLine(UTF82string(textStations[selectedLineIdx][startStationIdx]), lineNums + 1)) {
                     LOG("[Info] Line %d has been added, %s as start station...", lineNums + 1, textStations[selectedLineIdx][startStationIdx]);
                     updateTexts();
@@ -613,12 +613,12 @@ inline void Menu::renderAddControls()
                 }
 
             }
-
             ImGui::Separator();
 
             static char startStationName[256];
             static double startStationLatitude = 31.25;
             static double startStationLongitude = 121.45;
+            ImGui::PushFont(msyh);
             ImGui::Text("Create new station as start station:");
             ImGui::PushItemWidth(153.f);
             ImGui::Text("New station name: ");
@@ -631,7 +631,8 @@ inline void Menu::renderAddControls()
             ImGui::Text("Longitude:");
             ImGui::SameLine();
             ImGui::InputDouble("##Longitude", &startStationLongitude);
-            if (ImGui::Button("Add new line##2"))
+            ImGui::PopFont();
+            if (ImGui::Button(ICON_FA_PLUS " Add new line##2"))
             {
                 if (g_graph->indexOf(UTF82string(startStationName)) != -1) 
                 {
@@ -648,8 +649,6 @@ inline void Menu::renderAddControls()
             ImGui::EndChild();
         }
 
-
-        ImGui::PopFont();
         ImGui::EndTabItem();
     }
 
@@ -882,6 +881,9 @@ inline void Menu::setupStyle()
 
     //fonts
     io.Fonts->AddFontDefault();
+    static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_16_FA, 0 };
+    ImFontConfig icons_config; icons_config.MergeMode = true; icons_config.PixelSnapH = true;
+    io.Fonts->AddFontFromMemoryCompressedTTF(fa_data, fa_size, 10.f, &icons_config, icons_ranges);
     karlaRegular = io.Fonts->AddFontFromMemoryCompressedTTF((void*)karla_regular_data, karla_regular_size, 200.0f, NULL);
     cousineRegular = io.Fonts->AddFontFromMemoryCompressedTTF((void*)cousine_regular_data, cousine_regular_size, 200.0f, NULL);
     msyh = io.Fonts->AddFontFromMemoryCompressedTTF((void*)msyh_data, msyh_size, 20.f, NULL, io.Fonts->GetGlyphRangesChineseFull());

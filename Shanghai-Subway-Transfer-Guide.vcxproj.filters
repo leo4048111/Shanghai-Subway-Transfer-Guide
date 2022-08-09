@@ -120,6 +120,9 @@
     <ClInclude Include="src\HashNode.hpp">
       <Filter>ds</Filter>
     </ClInclude>
+    <ClInclude Include="src\font\fontawesome.hpp">
+      <Filter>font</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />
