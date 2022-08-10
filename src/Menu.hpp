@@ -119,6 +119,7 @@ private:
     inline void printRoute()
     {
         if (route == nullptr) return;
+        LOG("[Info] %s", u8"您所查询的路线信息如下：\n");
         LOG("[Info] %s: %s\n", u8"起点站", string2UTF8(g_graph->vexAt(route[0]).name).c_str());
         for (int i = 1; i < routeLen - 1; i++)
         {
@@ -200,6 +201,7 @@ private:
     float stationMarkThickness{ 1.3f };
     int* route{ nullptr };
     int routeLen{ NULL };
+    ds::Vector<bool> isVexInRoute;
 
     //canvas specs
     ImVec2 canvasOrigin{ 0.f, 0.f }; //screen coordinate of the origin point in canvas
@@ -223,6 +225,7 @@ bool Menu::init(GLFWwindow* window)
     //init subwayGraph
     initSubwayGraph();
     updateTexts();
+    this->isVexInRoute.resize(g_graph->size() + 8, false);
 
 	return true;
 }
@@ -345,9 +348,9 @@ inline void Menu::renderLog()
     flags |= ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
     ImGui::SetNextWindowPos(ImVec2(0, 317), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(559, 400), ImGuiCond_FirstUseEver);
-    ImGui::Begin("Log output", 0, flags);
+    ImGui::Begin(ICON_FA_INFO_CIRCLE "Log output", 0, flags);
     ImGui::End();
-    g_log->draw(msyh, "Log output");
+    g_log->draw(msyh, ICON_FA_INFO_CIRCLE "Log output");
 }
 
 inline void Menu::renderControls()
@@ -401,7 +404,14 @@ inline void Menu::renderControls()
             int** mat = nullptr;
             int size = g_graph->asMat(mat, !minimalStations);
             this->routeLen = Dijkstra::Helper::calculate((const int**)mat, size, startStationIdx, terminalStationIdx, this->route);
+            for (int i = 0; i < size; i++) free(mat[i]);
+            free(mat);
             LOG("[Info] Search strategy: %s\n", minimalStations ? "Minimal transfer stations" : "Minimal cost");
+            this->isVexInRoute.clear();
+            this->isVexInRoute.resize(g_graph->size() + 8, false);
+            for (int i = 0; i < this->routeLen; i++) {
+                this->isVexInRoute[route[i]] = true;
+            }
             printRoute();
         }
 
@@ -734,7 +744,7 @@ inline void Menu::renderCanvas()
     windowFlags |= ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
     ImGui::SetNextWindowPos(ImVec2(557, 19), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(722, 698), ImGuiCond_FirstUseEver);
-    ImGui::Begin("Canvas", 0, windowFlags);
+    ImGui::Begin(ICON_FA_SOLAR_PANEL "Canvas", 0, windowFlags);
     if (ImGui::Button("0.50x")) { zoomScale = 0.50f;}
     ImGui::SameLine();
     if (ImGui::Button("1.00x")) { zoomScale = 1.00f;}
@@ -837,11 +847,8 @@ inline void Menu::renderGraph()
             bool isSrcInRoute = false;
             bool isDstInRoute = false;
             if (shouldDrawRoute && route != nullptr) {
-                for (int x = 0; x < routeLen; x++) {
-                    if (!isSrcInRoute && route[x] == g_graph->indexOf(vex.name)) isSrcInRoute = true;
-                    if (!isDstInRoute && route[x] == g_graph->indexOf(adjVex.name)) isDstInRoute = true;
-                    if (isSrcInRoute && isDstInRoute) break;
-                }
+                isSrcInRoute = this->isVexInRoute[i];
+                isDstInRoute = this->isVexInRoute[arc->adjVex];
             }
             float modifierAngle = arc->lineNum.size() > 1 ? 0.25f : 0.f;
             for (auto lineNum : arc->lineNum)
@@ -1289,7 +1296,6 @@ inline void Menu::initSubwayGraph()
     g_graph->insert("金京路", { 12 }, 31.281933, 121.611422, { g_graph->indexOf("杨高北路") }, { 1 });
     g_graph->insert("申江路", { 12 }, 31.282377, 121.623002, { g_graph->indexOf("金京路")}, { 1 });
     g_graph->insert("金海路", { 12 }, 31.265203, 121.634441, { g_graph->indexOf("申江路") }, { 1 });
-
 }
 
 inline auto g_menu = std::make_unique<Menu>();

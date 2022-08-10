@@ -2,6 +2,7 @@
 
 #include "imgui.h"
 #include "Vector.hpp"
+#include "font/font.hpp"
 
 class Log
 {
@@ -60,7 +61,7 @@ public:
         ImGui::SameLine();
         bool copy = ImGui::Button("Copy");
         ImGui::SameLine();
-        Filter.Draw("Filter", -100.0f);
+        Filter.Draw(ICON_FA_FILTER "Filter", -100.0f);
 
         ImGui::Separator();
         ImGui::BeginChild("scrolling", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
