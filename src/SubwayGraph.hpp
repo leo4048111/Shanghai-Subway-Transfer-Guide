@@ -122,6 +122,81 @@ namespace ds
 			return true;
 		}
 
+		const bool removeArc(int i1, int i2, int lineNum)
+		{
+			if (i1 == -1 || i2 == -1) return false;
+			ds::Arc* lastArc = nullptr;
+			for (auto arc = vertexes[i1].first; arc != nullptr; arc = arc->next) {
+				if (arc->adjVex == i2)
+				{
+					arc->lineNum.find_erase(lineNum);
+					if (arc->lineNum.empty()) {
+						if (lastArc == nullptr) {
+							vertexes[i1].first = arc->next;
+							free(arc);
+						}
+						else {
+							lastArc->next = arc->next;
+							free(arc);
+						}
+					}
+					break;
+				}
+
+				lastArc = arc;
+			}
+
+			lastArc = nullptr;
+			for (auto arc = vertexes[i2].first; arc != nullptr; arc = arc->next) {
+				if (arc->adjVex == i1)
+				{
+					arc->lineNum.find_erase(lineNum);
+					if (arc->lineNum.empty()) {
+						if (lastArc == nullptr) {
+							vertexes[i2].first = arc->next;
+							free(arc);
+						}
+						else {
+							lastArc->next = arc->next;
+							free(arc);
+						}
+					}
+					break;
+				}
+
+				lastArc = arc;
+			}
+
+			return true;
+		}
+
+		const bool connect(int i1, int i2, int lineNum)
+		{
+			if (i1 == -1 || i2 == -1) return false;
+			for (auto arc = vertexes[i1].first; arc != nullptr; arc = arc->next)
+			{
+				if (arc->adjVex == i2 && arc->lineNum.find(lineNum) != arc->lineNum.end()) return false;
+			}
+
+			for (auto arc = vertexes[i2].first; arc != nullptr; arc = arc->next)
+			{
+				if (arc->adjVex == i1 && arc->lineNum.find(lineNum) != arc->lineNum.end()) return false;
+			}
+
+			ds::Arc* arc = vertexes[i1].first;
+			ds::Arc* newArc = new ds::Arc(i2, 1, nullptr);
+			newArc->lineNum.push_back(lineNum);
+			if (arc == nullptr) {
+				vertexes[i1].first = newArc;
+			}
+			else {
+				while (arc->next != nullptr) arc = arc->next;
+				arc->next = newArc;
+			}
+
+			return true;
+		}
+
 		const size_t asMat(int**& mat, bool isWeighted) const {
 			const int size = vertexes.size();
 			if (size <= 0) return 0;
