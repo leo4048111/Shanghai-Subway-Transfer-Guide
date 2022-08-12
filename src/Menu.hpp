@@ -117,8 +117,8 @@ private:
     }
 
     inline void searchForBestTransferRoute(
-        ds::Vector<int>& transferAt,
-        ds::Vector<int>& bestTransfer,
+        ds::Vector<int> transferAt,
+        ds::Vector<int> bestTransfer,
         ds::Vector<int>& transferAtResult,
         ds::Vector<int>& bestTransferResult,
         int& minTransfers,
@@ -139,8 +139,18 @@ private:
         }
 
         auto vex = g_graph->vexAt(route[curVexIdx]);
+        ds::Arc* arc = vex.first;
+        for (arc; arc != nullptr; arc = arc->next) if (arc->adjVex == route[curVexIdx + 1]) break;
+        if (arc == nullptr) {
+            for (arc = g_graph->vexAt(route[curVexIdx + 1]).first; arc != nullptr; arc = arc->next) if (arc->adjVex == route[curVexIdx]) break;
+        }
 
-        for (auto line : vex.lineNum)
+        if (arc == nullptr) {
+            minTransfers = -1;
+            return;
+        }
+
+        for (auto line : arc->lineNum)
         {
             if (line != curLine)
             {
@@ -163,10 +173,17 @@ private:
         ds::Vector<int> transferAt;
         ds::Vector<int> bestTransfer;
         int minTransfers = INT_MAX;
+        transferAtResult.clear();
+        bestTransferResult.clear();
         searchForBestTransferRoute(transferAt, bestTransfer, transferAtResult, bestTransferResult, minTransfers, 0, 0, 0);
 
         if (minTransfers == 0) {
             LOG(u8"[Info] 您输入的起点站和终点站相同，无需乘坐地铁\n");
+            return;
+        }
+
+        if (minTransfers == -1) {
+            LOG("[Error] Unexpected error occured while finding best transfer route...\n");
             return;
         }
 
