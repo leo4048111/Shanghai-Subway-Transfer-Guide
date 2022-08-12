@@ -116,44 +116,70 @@ private:
         return r;
     }
 
-    inline void printRoute()
+    inline void searchForBestTransferRoute(
+        ds::Vector<int>& transferAt,
+        ds::Vector<int>& bestTransfer,
+        ds::Vector<int>& transferAtResult,
+        ds::Vector<int>& bestTransferResult,
+        int& minTransfers,
+        int curLine,
+        int curVexIdx,
+        int transferCnt
+        )
     {
-        if (route == nullptr) return;
-        LOG("[Info] %s", u8"您所查询的路线信息如下：\n");
-        LOG("[Info] %s: %s\n", u8"起点站", string2UTF8(g_graph->vexAt(route[0]).name).c_str());
-        for (int i = 1; i < routeLen - 1; i++)
+        if (curVexIdx >= this->routeLen - 1)
         {
-            auto vex = g_graph->vexAt(route[i]);
-            auto lastVex = g_graph->vexAt(route[i - 1]);
-            auto nextVex = g_graph->vexAt(route[i + 1]);
-            int lastLineNum = -1;
-            int nextLineNum = -1;
-            for (int j = 0; j < vex.lineNum.size(); j++) {
-                if (lastLineNum == -1) {
-                    for (int k = 0; k < lastVex.lineNum.size(); k++) {
-                        if (vex.lineNum[j] == lastVex.lineNum[k]) lastLineNum = vex.lineNum[j];
-                    }
-                }
-
-                if (nextLineNum == -1) {
-                    for (int k = 0; k < nextVex.lineNum.size(); k++) {
-                        if (vex.lineNum[j] == nextVex.lineNum[k]) nextLineNum = vex.lineNum[j];
-                    }
-                }
-            }
-
-            if (lastLineNum == -1 || nextLineNum == -1) {
-                LOG("[Error] Unable to print route...");
-                return;
-            }
-
-            if (lastLineNum != nextLineNum)
+            if (transferCnt < minTransfers)
             {
-                LOG("[Info] %s: %s %d%s --> %d%s\n", u8"换乘站", string2UTF8(vex.name).c_str(), lastLineNum, u8"号线", nextLineNum, u8"号线");
+                minTransfers = transferCnt;
+                transferAtResult = transferAt;
+                bestTransferResult = bestTransfer;
+            }
+            return;
+        }
+
+        auto vex = g_graph->vexAt(route[curVexIdx]);
+
+        for (auto line : vex.lineNum)
+        {
+            if (line != curLine)
+            {
+                transferAt.push_back(route[curVexIdx]);
+                bestTransfer.push_back(line);
+                searchForBestTransferRoute(transferAt, bestTransfer, transferAtResult, bestTransferResult, minTransfers, line, curVexIdx + 1, transferCnt + 1);
+                transferAt.pop_back();
+                bestTransfer.pop_back(); 
+            }
+            else {
+                searchForBestTransferRoute(transferAt, bestTransfer, transferAtResult, bestTransferResult, minTransfers, curLine, curVexIdx + 1, transferCnt);
             }
         }
 
-        LOG("[Info] %s: %s\n", u8"终点站", string2UTF8(g_graph->vexAt(route[routeLen - 1]).name).c_str());
+    }
+
+    inline void printRoute()
+    {
+        if (route == nullptr) return;
+        ds::Vector<int> transferAt;
+        ds::Vector<int> bestTransfer;
+        int minTransfers = INT_MAX;
+        searchForBestTransferRoute(transferAt, bestTransfer, transferAtResult, bestTransferResult, minTransfers, 0, 0, 0);
+
+        if (minTransfers == 0) {
+            LOG(u8"[Info] 您输入的起点站和终点站相同，无需乘坐地铁\n");
+            return;
+        }
+
+        LOG("[Info] %s", u8"您所查询的路线信息如下：\n");
+        LOG("[Info] %s: %s%s%d%s\n", u8"起点站", string2UTF8(g_graph->vexAt(transferAtResult[0]).name).c_str(), u8"上车，乘坐", bestTransferResult[0], u8"号线");
+
+        for (int i = 1; i < minTransfers; i++)
+        {
+            LOG("[Info] %s: %s %d%s --> %d%s\n", u8"换乘站", string2UTF8(g_graph->vexAt(transferAtResult[i]).name).c_str(), bestTransferResult[i - 1], u8"号线", bestTransferResult[i], u8"号线");
+        }
+
+        LOG("[Info] %s: %s%s%d%s\n", u8"终点站", string2UTF8(g_graph->vexAt(route[routeLen - 1]).name).c_str(), u8"下车，", bestTransferResult[minTransfers - 1], u8"号线出站");
+        LOG("[Info] %s%d%s\n", u8"该换乘方案总共换乘", minTransfers - 1, u8"次");
     }
 
     inline void updateTexts();
@@ -169,6 +195,7 @@ private:
     bool shouldDrawRoute{ true };
     bool shouldShowFPS{ true };
     bool shouldDrawRouteCost{ false };
+    bool shouldRouteBlink{ false };
     float gridInterval{ 64.0 };
     float zoomScale{ 1.f };
     float graphScale{ 3000.f };
@@ -201,6 +228,8 @@ private:
     float stationMarkThickness{ 1.3f };
     int* route{ nullptr };
     int routeLen{ NULL };
+    ds::Vector<int> transferAtResult;
+    ds::Vector<int> bestTransferResult;
     ds::Vector<bool> isVexInRoute;
 
     //canvas specs
@@ -427,6 +456,8 @@ inline void Menu::renderControls()
         ImGui::Checkbox("Show FPS", &shouldShowFPS);
         ImGui::SameLine();
         ImGui::Checkbox("Show route cost", &shouldDrawRouteCost);
+        ImGui::SameLine();
+        ImGui::Checkbox("Blinking route", &shouldRouteBlink);
         ImGui::Separator();
         ImGui::Text("Graph scale:");
         ImGui::SameLine();
@@ -439,6 +470,9 @@ inline void Menu::renderControls()
         ImGui::ColorEdit4("##GraphTextColor", &graphTextColor.x, ImGuiColorEditFlags_AlphaBar);
         ImGui::SameLine(0.0f, ImGui::GetStyle().ItemInnerSpacing.x);
         ImGui::TextUnformatted("Graph text");
+        ImGui::ColorEdit4("##RouteColor", &routeColor.x, ImGuiColorEditFlags_AlphaBar);
+        ImGui::SameLine(0.0f, ImGui::GetStyle().ItemInnerSpacing.x);
+        ImGui::TextUnformatted("Route");
         for (int i = 1; i <= g_graph->getTotalLines(); i++) {
             char buf[32];
             sprintf_s(buf, "Line %d", i);
@@ -465,7 +499,7 @@ inline void Menu::renderAddControls()
 {
     ImGuiWindowFlags flags = 0;
     flags |= ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize;
-    ImGui::SetNextWindowSize(ImVec2(501, 370), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(501, 362), ImGuiCond_FirstUseEver);
     ImGui::Begin(ICON_FA_USER_COG "Additional controls", &showAddControls, flags);
     ImGui::BeginTabBar("##TabBar");
     static char stationName[256];
@@ -507,9 +541,11 @@ inline void Menu::renderAddControls()
         ImGui::InputDouble("##Longitude", &longitude);
         ImGui::Separator();
         ImGui::Text("Adjacent stations:");
-        ImGui::BeginChild("##AdjStations", ImVec2(0, 0), true);
+        ImGui::PopFont();
+        ImGui::BeginChild("##AdjStations", ImVec2(0, 160), true);
         for (int i = 0; i < adjStationsIdx.size(); i++)
         {
+            ImGui::PushFont(msyh);
             ImGui::PushItemWidth(120.f);
             char id1[256];
             sprintf_s(id1, "##StartLines%d", i);
@@ -531,19 +567,20 @@ inline void Menu::renderAddControls()
             ImGui::PopItemWidth();
             ImGui::PushItemWidth(80.f);
             char id3[256];
-            sprintf_s(id3, "Remove##%d", i);
+            sprintf_s(id3, ICON_FA_TRASH_ALT "Remove##%d", i);
             ImGui::Text("Cost:");
             ImGui::SameLine();
             ImGui::InputInt("##Cost", &adjStationsCost[i], 0);
             ImGui::SameLine();
-            if (ImGui::Button(id3)) {
+            ImGui::PopFont();
+            if (ImGui::Button(id3, ImVec2(0, 26))) {
                 eraseList.push_back(i);
             }
             ImGui::PopItemWidth();
         }
         ImGui::EndChild();
         ImGui::PopItemWidth();
-        ImGui::PopFont();
+
         for (int i = 0; i < eraseList.size(); i++) {
             selectedStationsIdx.erase(selectedStationsIdx.begin() + eraseList[i]);
             selectedLinesIdx.erase(selectedLinesIdx.begin() + eraseList[i]);
@@ -883,6 +920,10 @@ inline void Menu::renderGraph()
     constexpr double SH_LONGITUDE = 121.45f;
     constexpr double SH_LATITUDE = 31.25f;
     ImDrawList* drawList = ImGui::GetWindowDrawList();
+    static float counter = 1;
+    counter += 3.5f;
+    if (counter >= 2 * 255) counter = 1;
+    float routeMarkerAlpha = ((counter > 255) ? 255 * 2 - counter : counter) / 255.f;
     for (int i = 0; i < g_graph->size(); i++)
     {
         auto vex = g_graph->vexAt(i);
@@ -922,8 +963,8 @@ inline void Menu::renderGraph()
             {
                 if (this->isRailwayLineIgnored[lineNum] == true) continue;
                 lineColor = shouldDrawRoute && isSrcInRoute && isDstInRoute ? routeColor : railwayLineColors[lineNum];
+                lineColor.w = (shouldDrawRoute && isSrcInRoute && isDstInRoute && shouldRouteBlink) ? routeMarkerAlpha : lineColor.w;
                 float lineWeight = shouldDrawRoute && isSrcInRoute && isDstInRoute ? 2.f : 1.5f;
-
                 double angle = atan((src.y - dst.y) / (src.x - dst.x));
                 drawList->AddLine(
                     ImVec2(src.x + (src.x > dst.x ? -1 : 1) * ZOOM(stationMarkRadius + stationMarkThickness) * cos(angle - modifierAngle), src.y + (src.x > dst.x ? -1 : 1) * ZOOM(stationMarkRadius + stationMarkThickness) * sin(angle - modifierAngle)),
