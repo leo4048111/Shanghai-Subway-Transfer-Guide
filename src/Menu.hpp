@@ -516,7 +516,7 @@ inline void Menu::renderAddControls()
 {
     ImGuiWindowFlags flags = 0;
     flags |= ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize;
-    ImGui::SetNextWindowSize(ImVec2(501, 362), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(501, 333), ImGuiCond_FirstUseEver);
     ImGui::Begin(ICON_FA_USER_COG "Additional controls", &showAddControls, flags);
     ImGui::BeginTabBar("##TabBar");
     static char stationName[256];
