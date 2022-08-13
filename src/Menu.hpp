@@ -877,7 +877,11 @@ inline void Menu::renderCanvas()
     ImGui::SameLine();
     if (ImGui::Button("2.00x")) { zoomScale = 2.00;}
     ImGui::SameLine();
-    if (ImGui::SliderFloat("Zoom", &zoomScale, 0.25f, 5.00f)) {}
+    ImGui::Text(ICON_FA_MINUS);
+    ImGui::SameLine();
+    if (ImGui::SliderFloat("##Zoom", &zoomScale, 0.25f, 5.00f)) {}
+    ImGui::SameLine();
+    ImGui::Text(ICON_FA_PLUS);
     ImVec2 canvas_tl = ImGui::GetCursorScreenPos();
     ImVec2 canvas_sz = ImGui::GetContentRegionAvail();
 
