@@ -587,7 +587,9 @@ inline void Menu::renderAddControls()
             sprintf_s(id3, ICON_FA_TRASH_ALT "Remove##%d", i);
             ImGui::Text("Cost:");
             ImGui::SameLine();
-            ImGui::InputInt("##Cost", &adjStationsCost[i], 0);
+            char id4[32];
+            sprintf_s(id4, "##Cost%d", i);
+            ImGui::InputInt(id4, &adjStationsCost[i], 0);
             ImGui::SameLine();
             ImGui::PopFont();
             if (ImGui::Button(id3, ImVec2(0, 26))) {
@@ -756,6 +758,7 @@ inline void Menu::renderAddControls()
                 i++;
             }
             ImGui::SameLine();
+            if (selectedDstVexIdx >= i) selectedDstVexIdx = 0;
             if (ImGui::Combo("##ModifyArcVex2", &selectedDstVexIdx, buf, i))
                 i2 = buf[0] == nullptr ? -1 : g_graph->indexOf(UTF82string(buf[selectedDstVexIdx]));
             i2 = buf[0] == nullptr ? -1 : g_graph->indexOf(UTF82string(buf[selectedDstVexIdx]));
