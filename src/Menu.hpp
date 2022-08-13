@@ -286,6 +286,8 @@ void Menu::mainloop()
     {
         glfwPollEvents();
 
+        //glfwGetWindowAttrib(window, GLFW_MIN)
+
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL2_NewFrame();
         ImGui_ImplGlfw_NewFrame();
@@ -658,62 +660,60 @@ inline void Menu::renderAddControls()
         ImGui::Text("%d", lineNums + 1);
         ImGui::ColorEdit4("New rail line color", &railwayLineColors[lineNums + 1].x, ImGuiColorEditFlags_AlphaBar);
         ImGui::Separator();
-        if (ImGui::BeginChild("##SelectExistingStationAsStart", ImVec2(0, 0), true))
-        {
-            ImGui::PushFont(msyh);
-            ImGui::Text("Select existing station as start station:");
-            ImGui::PushItemWidth(233.f);
-            ImGui::Combo("##SelectedStartStationLine", &selectedLineIdx, textLines, textLinesSize);
-            ImGui::SameLine();
-            ImGui::Combo("##SelectedStartStation", &startStationIdx, textStations[selectedLineIdx], textStationsCnts[selectedLineIdx]);
-            ImGui::PopItemWidth();
-            ImGui::PopFont();
-            if (ImGui::Button(ICON_FA_PLUS " Add new line##1")) {
-                if (g_graph->addLine(UTF82string(textStations[selectedLineIdx][startStationIdx]), lineNums + 1)) {
-                    LOG("[Info] Line %d has been added, %s as start station...", lineNums + 1, textStations[selectedLineIdx][startStationIdx]);
-                    updateTexts();
-                }
-                else
-                {
-                    LOG("[Error] Unable to add new line...");
-                }
-
+        ImGui::BeginChild("##SelectExistingStationAsStart", ImVec2(0, 0), true);
+        ImGui::PushFont(msyh);
+        ImGui::Text("Select existing station as start station:");
+        ImGui::PushItemWidth(233.f);
+        ImGui::Combo("##SelectedStartStationLine", &selectedLineIdx, textLines, textLinesSize);
+        ImGui::SameLine();
+        ImGui::Combo("##SelectedStartStation", &startStationIdx, textStations[selectedLineIdx], textStationsCnts[selectedLineIdx]);
+        ImGui::PopItemWidth();
+        ImGui::PopFont();
+        if (ImGui::Button(ICON_FA_PLUS " Add new line##1")) {
+            if (g_graph->addLine(UTF82string(textStations[selectedLineIdx][startStationIdx]), lineNums + 1)) {
+                LOG("[Info] Line %d has been added, %s as start station...", lineNums + 1, textStations[selectedLineIdx][startStationIdx]);
+                updateTexts();
             }
-            ImGui::Separator();
-
-            static char startStationName[256];
-            static double startStationLatitude = 31.25;
-            static double startStationLongitude = 121.45;
-            ImGui::PushFont(msyh);
-            ImGui::Text("Create new station as start station:");
-            ImGui::PushItemWidth(153.f);
-            ImGui::Text("New station name: ");
-            ImGui::SameLine();
-            ImGui::InputText("##InputStationName", startStationName, IM_ARRAYSIZE(startStationName));
-            ImGui::Text("Latitude:");
-            ImGui::SameLine();
-            ImGui::InputDouble("##Latitude", &startStationLatitude);
-            ImGui::SameLine();
-            ImGui::Text("Longitude:");
-            ImGui::SameLine();
-            ImGui::InputDouble("##Longitude", &startStationLongitude);
-            ImGui::PopFont();
-            if (ImGui::Button(ICON_FA_PLUS " Add new line##2"))
+            else
             {
-                if (g_graph->indexOf(UTF82string(startStationName)) != -1)
-                {
-                    LOG("[Error] Unable to add new line, station name duplicated...");
-                }
-                else
-                {
-                    g_graph->insert(UTF82string(startStationName), { lineNums + 1 }, startStationLatitude, startStationLongitude, {}, {});
-                    LOG("[Info] Line %d has been added, %s as start station...", lineNums + 1, startStationName);
-                    updateTexts();
-                }
+                LOG("[Error] Unable to add new line...");
             }
-            ImGui::PopItemWidth();
-            ImGui::EndChild();
+
         }
+        ImGui::Separator();
+
+        static char startStationName[256];
+        static double startStationLatitude = 31.25;
+        static double startStationLongitude = 121.45;
+        ImGui::PushFont(msyh);
+        ImGui::Text("Create new station as start station:");
+        ImGui::PushItemWidth(153.f);
+        ImGui::Text("New station name: ");
+        ImGui::SameLine();
+        ImGui::InputText("##InputStationName", startStationName, IM_ARRAYSIZE(startStationName));
+        ImGui::Text("Latitude:");
+        ImGui::SameLine();
+        ImGui::InputDouble("##Latitude", &startStationLatitude);
+        ImGui::SameLine();
+        ImGui::Text("Longitude:");
+        ImGui::SameLine();
+        ImGui::InputDouble("##Longitude", &startStationLongitude);
+        ImGui::PopFont();
+        if (ImGui::Button(ICON_FA_PLUS " Add new line##2"))
+        {
+            if (g_graph->indexOf(UTF82string(startStationName)) != -1)
+            {
+                LOG("[Error] Unable to add new line, station name duplicated...");
+            }
+            else
+            {
+                g_graph->insert(UTF82string(startStationName), { lineNums + 1 }, startStationLatitude, startStationLongitude, {}, {});
+                LOG("[Info] Line %d has been added, %s as start station...", lineNums + 1, startStationName);
+                updateTexts();
+            }
+        }
+        ImGui::PopItemWidth();
+        ImGui::EndChild();
 
         ImGui::EndTabItem();
     }
@@ -765,94 +765,92 @@ inline void Menu::renderAddControls()
         }
         ImGui::PopFont();
         ImGui::Separator();
-        if (ImGui::BeginChild("##ModifyArc", ImVec2(0, 0), true))
+        ImGui::BeginChild("##ModifyArc", ImVec2(0, 0), true);
+        static int newCost = 1;
+        ImGui::Text("Update arc cost:");
+        ImGui::Text("New cost:");
+        ImGui::SameLine();
+        ImGui::InputInt("##Cost", &newCost);
+        ImGui::SameLine();
+        if (ImGui::Button(ICON_FA_WRENCH "Update"))
         {
-            static int newCost = 1;
-            ImGui::Text("Update arc cost:");
-            ImGui::Text("New cost:");
-            ImGui::SameLine();
-            ImGui::InputInt("##Cost", &newCost);
-            ImGui::SameLine();
-            if (ImGui::Button(ICON_FA_WRENCH "Update"))
+            if (g_graph->updateArcCost(i1, i2, newCost))
             {
-                if (g_graph->updateArcCost(i1, i2, newCost))
-                {
-                    LOG("[Info] New cost %d has been updated between %s and %s...\n", newCost, textStations[selectedLine][selectedSrcVexIdx], buf[selectedDstVexIdx]);
-                }
-                else
-                {
-                    LOG("[Error] Unable to update cost...\n");
-                }
+                LOG("[Info] New cost %d has been updated between %s and %s...\n", newCost, textStations[selectedLine][selectedSrcVexIdx], buf[selectedDstVexIdx]);
             }
-            ImGui::Separator();
-            ImGui::Text("Remove selected arc:");
-            ImGui::Text(ICON_FA_INFO " Notice: This operation will remove selected arc.");
-            ImGui::SameLine();
-            if (ImGui::Button(ICON_FA_TRASH_ALT "Remove"))
+            else
             {
-                if (g_graph->removeArc(i1, i2, selectedLine + 1))
-                {
-                    LOG("[Info] Line %d arc between %s and %s has been removed...\n", selectedLine + 1, textStations[selectedLine][selectedSrcVexIdx], buf[selectedDstVexIdx]);
-                }
-                else
-                {
-                    LOG("[Error] Unable to remove arc...\n");
-                }
+                LOG("[Error] Unable to update cost...\n");
             }
-            ImGui::Separator();
-            ImGui::PushFont(msyh);
-            ImGui::PushItemWidth(150.f);
-            static int connectStationSrcLineIdx = 0;
-            static int connectStationDstLineIdx = 0;
-            static int connectStationSrcIdx = 0;
-            static int connectStationDstIdx = 0;
-            static int idx1 = g_graph->indexOf(UTF82string(textStations[connectStationSrcLineIdx][connectStationSrcIdx]));
-            static int idx2 = g_graph->indexOf(UTF82string(textStations[connectStationDstLineIdx][connectStationDstIdx]));
-            static int connectWithLineNum = 0;
-            ImGui::Text("Connect selected stations:");
-            ImGui::Text("Station 1:");
-            ImGui::SameLine();
-            if (ImGui::Combo("##ConnectsArcLine1",  &connectStationSrcLineIdx, textLines, textLinesSize))
-            {
-                connectStationSrcIdx = 0;
-                idx1 = g_graph->indexOf(UTF82string(textStations[connectStationSrcLineIdx][connectStationSrcIdx]));
-            }
-            ImGui::SameLine();
-            if (ImGui::Combo("##ConnectsArcStation1", &connectStationSrcIdx, textStations[connectStationSrcLineIdx], textStationsCnts[connectStationSrcLineIdx]))
-            {
-                idx1 = g_graph->indexOf(UTF82string(textStations[connectStationSrcLineIdx][connectStationSrcIdx]));
-            }
-            ImGui::Text("Station 2:");
-            ImGui::SameLine();
-            if (ImGui::Combo("##ConnectsArcLine2", &connectStationDstLineIdx, textLines, textLinesSize))
-            {
-                connectStationDstIdx = 0;
-                idx2 = g_graph->indexOf(UTF82string(textStations[connectStationDstLineIdx][connectStationDstIdx]));
-            }
-            ImGui::SameLine();
-            if (ImGui::Combo("##ConnectsArcStation2", &connectStationDstIdx, textStations[connectStationDstLineIdx], textStationsCnts[connectStationDstLineIdx]))
-            {
-                idx2 = g_graph->indexOf(UTF82string(textStations[connectStationDstLineIdx][connectStationDstIdx]));
-            }
-            ImGui::Text("Connect with railway line: ");
-            ImGui::SameLine();
-            ImGui::Combo("##ConnectWithLine", &connectWithLineNum, textLines, textLinesSize);
-            ImGui::PopFont();
-            ImGui::Text(ICON_FA_INFO " Notice: This operation will connect selected stations.");
-            ImGui::SameLine();
-            if (ImGui::Button(ICON_FA_EDIT "Connect")) {
-                if (g_graph->connect(idx1, idx2, connectWithLineNum + 1))
-                {
-                    LOG("[Info] Line %d arc between %s and %s has been connected...\n", connectWithLineNum + 1, textStations[selectedLine][selectedSrcVexIdx], buf[selectedDstVexIdx]);
-                }
-                else
-                {
-                    LOG("[Error] Arc has existed, unable to connect...\n");
-                }
-            }
-            ImGui::PopItemWidth();
-            ImGui::EndChild();
         }
+        ImGui::Separator();
+        ImGui::Text("Remove selected arc:");
+        ImGui::Text(ICON_FA_INFO " Notice: This operation will remove selected arc.");
+        ImGui::SameLine();
+        if (ImGui::Button(ICON_FA_TRASH_ALT "Remove"))
+        {
+            if (g_graph->removeArc(i1, i2, selectedLine + 1))
+            {
+                LOG("[Info] Line %d arc between %s and %s has been removed...\n", selectedLine + 1, textStations[selectedLine][selectedSrcVexIdx], buf[selectedDstVexIdx]);
+            }
+            else
+            {
+                LOG("[Error] Unable to remove arc...\n");
+            }
+        }
+        ImGui::Separator();
+        ImGui::PushItemWidth(150.f);
+        ImGui::PushFont(msyh);
+        static int connectStationSrcLineIdx = 0;
+        static int connectStationDstLineIdx = 0;
+        static int connectStationSrcIdx = 0;
+        static int connectStationDstIdx = 0;
+        static int idx1 = g_graph->indexOf(UTF82string(textStations[connectStationSrcLineIdx][connectStationSrcIdx]));
+        static int idx2 = g_graph->indexOf(UTF82string(textStations[connectStationDstLineIdx][connectStationDstIdx]));
+        static int connectWithLineNum = 0;
+        ImGui::Text("Connect selected stations:");
+        ImGui::Text("Station 1:");
+        ImGui::SameLine();
+        if (ImGui::Combo("##ConnectsArcLine1", &connectStationSrcLineIdx, textLines, textLinesSize))
+        {
+            connectStationSrcIdx = 0;
+            idx1 = g_graph->indexOf(UTF82string(textStations[connectStationSrcLineIdx][connectStationSrcIdx]));
+        }
+        ImGui::SameLine();
+        if (ImGui::Combo("##ConnectsArcStation1", &connectStationSrcIdx, textStations[connectStationSrcLineIdx], textStationsCnts[connectStationSrcLineIdx]))
+        {
+            idx1 = g_graph->indexOf(UTF82string(textStations[connectStationSrcLineIdx][connectStationSrcIdx]));
+        }
+        ImGui::Text("Station 2:");
+        ImGui::SameLine();
+        if (ImGui::Combo("##ConnectsArcLine2", &connectStationDstLineIdx, textLines, textLinesSize))
+        {
+            connectStationDstIdx = 0;
+            idx2 = g_graph->indexOf(UTF82string(textStations[connectStationDstLineIdx][connectStationDstIdx]));
+        }
+        ImGui::SameLine();
+        if (ImGui::Combo("##ConnectsArcStation2", &connectStationDstIdx, textStations[connectStationDstLineIdx], textStationsCnts[connectStationDstLineIdx]))
+        {
+            idx2 = g_graph->indexOf(UTF82string(textStations[connectStationDstLineIdx][connectStationDstIdx]));
+        }
+        ImGui::Text("Connect with railway line: ");
+        ImGui::SameLine();
+        ImGui::Combo("##ConnectWithLine", &connectWithLineNum, textLines, textLinesSize);
+        ImGui::PopFont();
+        ImGui::Text(ICON_FA_INFO " Notice: This operation will connect selected stations.");
+        ImGui::SameLine();
+        if (ImGui::Button(ICON_FA_EDIT "Connect")) {
+            if (g_graph->connect(idx1, idx2, connectWithLineNum + 1))
+            {
+                LOG("[Info] Line %d arc between %s and %s has been connected...\n", connectWithLineNum + 1, textStations[selectedLine][selectedSrcVexIdx], buf[selectedDstVexIdx]);
+            }
+            else
+            {
+                LOG("[Error] Arc has existed, unable to connect...\n");
+            }
+        }
+        ImGui::PopItemWidth();
+        ImGui::EndChild();
 
         ImGui::PopItemWidth();
         ImGui::EndTabItem();
