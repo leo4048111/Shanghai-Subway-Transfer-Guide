@@ -286,8 +286,6 @@ void Menu::mainloop()
     {
         glfwPollEvents();
 
-        //glfwGetWindowAttrib(window, GLFW_MIN)
-
         // Start the Dear ImGui frame
         ImGui_ImplOpenGL2_NewFrame();
         ImGui_ImplGlfw_NewFrame();
