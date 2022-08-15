@@ -183,6 +183,7 @@
     <ClInclude Include="src\Log.hpp" />
     <ClInclude Include="src\Menu.hpp" />
     <ClInclude Include="src\MinHeap.hpp" />
+    <ClInclude Include="src\stb_image\stb_image.hpp" />
     <ClInclude Include="src\stdafx.h" />
     <ClInclude Include="src\SubwayGraph.hpp" />
     <ClInclude Include="src\Vector.hpp" />

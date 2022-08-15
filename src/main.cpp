@@ -1,5 +1,7 @@
 #include "stdafx.h"
 #include "Menu.hpp"
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image/stb_image.hpp"
 
 #define BAIL_IF_ERROR(ok) if(!ok) goto bail
 
@@ -12,6 +14,8 @@ int main()
 {
 	FreeConsole();
 	GLFWwindow* window = nullptr;
+	GLFWimage icon = { 32, 32, nullptr };
+	int channels = 3;
 	glfwSetErrorCallback(glfw_error_callback);
 	//init glfw
 	BAIL_IF_ERROR(glfwInit());
@@ -21,10 +25,13 @@ int main()
 	window = glfwCreateWindow(1280, 720, "SH Subway Transfer Guide Demo", NULL, NULL);
 	BAIL_IF_ERROR(window);
 	LOG("[%s] %s\n", "Info", "Window has been created...");
+	//set icon
+	icon.pixels = stbi_load("icon.jpeg", &icon.width, &icon.height, &channels, 4);
+	if(icon.pixels != nullptr)
+		glfwSetWindowIcon(window, 1, &icon);
 	//context
 	glfwMakeContextCurrent(window);
 	glfwSwapInterval(1); //enable vsync
-
 	//init menu
 	BAIL_IF_ERROR(g_menu->init(window));
 	LOG("[%s] %s\n", "Info", "Application is running...");

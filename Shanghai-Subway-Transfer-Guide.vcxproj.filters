@@ -26,6 +26,9 @@
     <Filter Include="font">
       <UniqueIdentifier>{c0aa1dd0-cdd3-4243-89a3-87d2d568b19e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="stb_image">
+      <UniqueIdentifier>{7e30a908-e6e6-4879-b653-4775bcabc8ca}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\imgui\backend\imgui_impl_glfw.cpp">
@@ -122,6 +125,9 @@
     </ClInclude>
     <ClInclude Include="src\font\fontawesome.hpp">
       <Filter>font</Filter>
+    </ClInclude>
+    <ClInclude Include="src\stb_image\stb_image.hpp">
+      <Filter>stb_image</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
