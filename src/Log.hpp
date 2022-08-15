@@ -81,7 +81,11 @@ public:
                 const char* line_start = buf + LineOffsets[line_no];
                 const char* line_end = (line_no + 1 < LineOffsets.size()) ? (buf + LineOffsets[line_no + 1] - 1) : buf_end;
                 if (Filter.PassFilter(line_start, line_end))
+                {
+                    ImGui::PushFont(font);
                     ImGui::TextUnformatted(line_start, line_end);
+                    ImGui::PopFont();
+                }
             }
         }
         else
