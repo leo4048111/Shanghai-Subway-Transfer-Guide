@@ -25,4 +25,4 @@
 + 其它自定义功能（Miscellaneous features, find out urself）
 ## 截图（Screenshot）
 ## License
-The libraries used in this project are under their respective licenses.
+All 3rd-party assets and libraries used in this project retain all rights under their respective licenses.
