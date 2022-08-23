@@ -7,6 +7,9 @@
 （1）图形化显示地铁网络结构，能动态添加地铁线路和地铁站点。  
 （2）根据输入起点站和终点站，显示地铁换乘指南。  
 （3）通过图形界面显示乘车路径。**
+## 应用场景（Usage）
+本程序用于上海地铁的换乘指南，输入一个起点站，输入一个终点站，选择最优换乘策略（例如最少经过站点、最短通勤时间等），系统以文本和可视化的方式同时自动给出最优的换乘路径。
+（This program will calculate the best transfer route from a given start station to terminal station for Shanghai railway system. Results are given in both text and graphic forms.）
 ## 运行平台（Platform）
 （1）操作系统（OS）：Windows11 Pro build 22000.795  
 （2）开发语言（Language）：C++(ISO C++17 Standard)  
