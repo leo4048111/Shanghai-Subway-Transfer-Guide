@@ -1,5 +1,5 @@
 # 上海地铁换乘指南(Shanghai-Subway-Transfer-Guide)
-数据结构课程设计，实现上海地铁换乘指南(A transfer guide for Shanghai Subway, implemented with Dear ImGui.)
+数据结构课程设计(Tongji University CS10016503)，实现上海地铁换乘指南(A transfer guide for Shanghai Subway, implemented with Dear ImGui.)
 ## 题目要求（Problem description）
 **上海的地铁交通网路已基本成型，建成的地铁线十多条，站点上百个，现需建立
 一个换乘指南打印系统，通过输入起点站和终点站，打印出地铁换乘指南，指南内容包
